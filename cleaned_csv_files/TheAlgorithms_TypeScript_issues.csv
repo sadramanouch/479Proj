@@ -1,0 +1,996 @@
+issue_id,issue_number,issue_title,issue_body,comment_id,comment_body
+2662732065,275,[FEATURE]: Function for checking if array is sorted should check whether the array is sorted in both ascending and descending order.,"### Motivation
+
+I have been looking at the code for checking whether an array is sorted and this is the current implementation:
+```TypeScript
+export function isSortedArray(arr: number[]): boolean {
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] >= arr[i + 1]) {
+      return false
+    }
+  }
+  return true
+}
+```
+The code is working fine, but currently, it is only checking whether the passed array is sorted in ascending order, should we want to check whether the array is sorted in descending order then it will not be of much help.
+
+### Examples
+
+Currently, the function checks whether an array is sorted, taking a single parameter: the array to evaluate. To enhance its functionality, I propose adding a second parameter that specifies the order to check for sorting.
+The second parameter should be a string such as:
+- ```asc``` to check whether the array is sorted in ascending order.
+- ```desc``` to check whether the array is sorted in descending order.
+
+Here are some example:
+```TypeScript
+isSortedArray([1, 2, 3, 5, 9], 'asc') // true
+isSortedArray([1, 2, 3, 5, 9], 'desc') // false
+isSortedArray([9, 5, 3, 2, 1], 'desc') // true
+```
+
+### Possible workarounds
+
+_No response_",2480599700,"I don't think that's a good idea. Rather, the function should just take an optional comparator, e.g. like [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort)."
+2662732065,275,[FEATURE]: Function for checking if array is sorted should check whether the array is sorted in both ascending and descending order.,"### Motivation
+
+I have been looking at the code for checking whether an array is sorted and this is the current implementation:
+```TypeScript
+export function isSortedArray(arr: number[]): boolean {
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] >= arr[i + 1]) {
+      return false
+    }
+  }
+  return true
+}
+```
+The code is working fine, but currently, it is only checking whether the passed array is sorted in ascending order, should we want to check whether the array is sorted in descending order then it will not be of much help.
+
+### Examples
+
+Currently, the function checks whether an array is sorted, taking a single parameter: the array to evaluate. To enhance its functionality, I propose adding a second parameter that specifies the order to check for sorting.
+The second parameter should be a string such as:
+- ```asc``` to check whether the array is sorted in ascending order.
+- ```desc``` to check whether the array is sorted in descending order.
+
+Here are some example:
+```TypeScript
+isSortedArray([1, 2, 3, 5, 9], 'asc') // true
+isSortedArray([1, 2, 3, 5, 9], 'desc') // false
+isSortedArray([9, 5, 3, 2, 1], 'desc') // true
+```
+
+### Possible workarounds
+
+_No response_",2481336517,"So, your idea is that the function should now be called with two parameters, the array to be sorted and and a callback function which will be the comparator?
+```Javascript
+isSortedArray([3, 2, 1], (a, b) => b - a); // true
+isSortedArray([1, 2, 3], (a, b) => b - a); // false
+```"
+2662732065,275,[FEATURE]: Function for checking if array is sorted should check whether the array is sorted in both ascending and descending order.,"### Motivation
+
+I have been looking at the code for checking whether an array is sorted and this is the current implementation:
+```TypeScript
+export function isSortedArray(arr: number[]): boolean {
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] >= arr[i + 1]) {
+      return false
+    }
+  }
+  return true
+}
+```
+The code is working fine, but currently, it is only checking whether the passed array is sorted in ascending order, should we want to check whether the array is sorted in descending order then it will not be of much help.
+
+### Examples
+
+Currently, the function checks whether an array is sorted, taking a single parameter: the array to evaluate. To enhance its functionality, I propose adding a second parameter that specifies the order to check for sorting.
+The second parameter should be a string such as:
+- ```asc``` to check whether the array is sorted in ascending order.
+- ```desc``` to check whether the array is sorted in descending order.
+
+Here are some example:
+```TypeScript
+isSortedArray([1, 2, 3, 5, 9], 'asc') // true
+isSortedArray([1, 2, 3, 5, 9], 'desc') // false
+isSortedArray([9, 5, 3, 2, 1], 'desc') // true
+```
+
+### Possible workarounds
+
+_No response_",2481338771,"> So, your idea is that the function should now be called with two parameters, the array to be sorted and and a callback function which will be the comparator?
+> 
+> ```js
+> isSortedArray([3, 2, 1], (a, b) => b - a); // true
+> isSortedArray([1, 2, 3], (a, b) => b - a); // false
+> ```
+
+Yes (your example should have a different comparator in the second line btw). But the comparator should default to something sensible (such that it checks whether the array is sorted ascendingly by default, just like `Array.sort` sorts ascendingly by default)."
+2164592868,232,[FEATURE]: More explicit handling in QuickSort partition algorithm,"### Motivation
+
+I've been reviewing the Quicksort partition implementation in this repository. Specifically, I'm focusing on the following segment of the code:
+
+```typescript
+while (i < j) {
+ while (array[++i] < pivot);
+ while (array[--j] > pivot);
+
+ if (i < j) {
+    [array[i], array[j]] = [array[j], array[i]];
+ }
+}
+```
+
+In the scenario where the rightmost element is chosen as the pivot, and all other elements are greater than the pivot (e.g., `[6, 5, 4, 3, 2, 1]`), the code handles the out-of-bounds behavior as follows: `array[-1]` is `undefined`. When `undefined` is compared against a number, it is coerced into `NaN`, resulting in `false` for the comparison.
+
+While this approach works and is quite clever, I believe it could be beneficial to make the handling of these cases more explicit. This would enhance the readability and maintainability of the code, making it easier for newcomers to understand and for the code to be adapted or modified in the future.
+
+I suggest taking a more conventional approach, such as:
+
+```typescript
+while (array[--j] > pivot) {
+ if (j === left) break;
+}
+```
+
+This change would make the algorithm's logic more straightforward and easier to follow, without relying on special JavaScript behavior.
+
+Thank you for considering this request. I'm open to feedback and suggestions on how to further improve the code.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1974820675,"I agree that relying on the type coercion done by `>` here is hacky; it should be made explicit.
+
+Why not do something like `while (array[--j] > pivot && j !== left);` though?"
+1986883007,215,[FEATURE]: Add Gitpod Setup,"### Motivation
+
+Having gitpod ready repo makes contribution easy and also it does not requires to setup environment locally
+
+I have worked on similar issue in PHP repo of `TheAlgorithms`  https://github.com/TheAlgorithms/PHP/issues/130
+
+#### I would like to work on this feature
+
+### Examples
+
+Other repos like Python and GoLang in `TheAlgorithms` use gitpod.
+
+#### Screenshots:
+
+![image](https://github.com/TheAlgorithms/TypeScript/assets/100275369/ffc6c875-3dc1-4fe6-b23a-cedd20af2778)
+![image](https://github.com/TheAlgorithms/TypeScript/assets/100275369/436afc37-278b-4f47-bca5-871d6787015c)
+
+
+### Possible workarounds
+
+_No response_",1805833840,"I'm mostly indifferent to Gitpod support; I wouldn't use it myself or recommend it to our contributors, but it is a low maintenance cost feature (cf. [the discussion on the PR to add Gitpod configuration to the Lua repo](https://github.com/TheAlgorithms/Lua/pull/11)), so I am not strongly opposed to it, and would accept a PR."
+1951305568,210,[FEATURE]: Adding a new category for Sequences,"### Motivation
+
+TypeScript (and JavaScript) has the capability of using Generator functions, which can help us in generating sequences.
+There already exists a category for [`Sequences`](https://the-algorithms.com/category/sequences), which was made for `C#` to make use of the existence of generator methods in C# (from what was told to me by one of the maintainers of the C# repository).
+Since TypeScript also has generators, we could also add implementations for those sequences on the Website under this category. We could also add many more entries under this category, for there are many sequences whose implementations are non-trivial but not added there yet.
+
+### Examples
+
+We could add this to increase coverage of the entries under the cateogry of `Sequences`, which would also look less confusing, for when someone may look at the website, it can be confusing so as to why there's only C# implementations under those sequences.
+
+### Possible workarounds
+
+_No response_",1772702348,Agreed. Sequences should be implemented as generators (where possible) and get a subcategory in the maths folder.
+1951305568,210,[FEATURE]: Adding a new category for Sequences,"### Motivation
+
+TypeScript (and JavaScript) has the capability of using Generator functions, which can help us in generating sequences.
+There already exists a category for [`Sequences`](https://the-algorithms.com/category/sequences), which was made for `C#` to make use of the existence of generator methods in C# (from what was told to me by one of the maintainers of the C# repository).
+Since TypeScript also has generators, we could also add implementations for those sequences on the Website under this category. We could also add many more entries under this category, for there are many sequences whose implementations are non-trivial but not added there yet.
+
+### Examples
+
+We could add this to increase coverage of the entries under the cateogry of `Sequences`, which would also look less confusing, for when someone may look at the website, it can be confusing so as to why there's only C# implementations under those sequences.
+
+### Possible workarounds
+
+_No response_",1773290385,"> Agreed. Sequences should be implemented as generators (where possible) and get a subcategory in the maths folder.
+
+Yes. Just one question, [`Sequences`](https://the-algorithms.com/category/sequences) already exists as a category separate to that of [`Maths`](https://the-algorithms.com/category/maths) on the website, so if we put sequences as a sub-category to maths in our file structures, then would it not lead to duplicate entries? How shall we prevent that?
+"
+1951305568,210,[FEATURE]: Adding a new category for Sequences,"### Motivation
+
+TypeScript (and JavaScript) has the capability of using Generator functions, which can help us in generating sequences.
+There already exists a category for [`Sequences`](https://the-algorithms.com/category/sequences), which was made for `C#` to make use of the existence of generator methods in C# (from what was told to me by one of the maintainers of the C# repository).
+Since TypeScript also has generators, we could also add implementations for those sequences on the Website under this category. We could also add many more entries under this category, for there are many sequences whose implementations are non-trivial but not added there yet.
+
+### Examples
+
+We could add this to increase coverage of the entries under the cateogry of `Sequences`, which would also look less confusing, for when someone may look at the website, it can be confusing so as to why there's only C# implementations under those sequences.
+
+### Possible workarounds
+
+_No response_",1773736959,"From taking a brief look at the website code, I think it would be under the both the ""maths"" and ""sequences"" categories then, which seems reasonable: https://github.com/TheAlgorithms/website/blob/1d72fe67726e333d64cbaa48a7812231e3348c1f/scripts/fetch-algorithms.ts#L114-L122.
+
+If not, esp. if it'd just be under the maths category, that would be a website issue."
+1925489253,176,[BUG]: some test cases are failing.....,"### Description
+
+`Summary of all failing tests
+FAIL backtracking/test/generateparentheses.test.ts
+  ● Test suite failed to run
+
+    backtracking/test/generateparentheses.test.ts:1:37 - error TS2307: Cannot find module '../generateParentheses' or its corresponding type declarations.
+
+    1 import { generateParentheses } from ""../generateParentheses"";
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~
+
+FAIL backtracking/test/all_combinations_of_size_k.test.ts
+  ● Test suite failed to run
+
+    backtracking/test/all_combinations_of_size_k.test.ts:1:38 - error TS2307: Cannot find module '../all-combinations-of-size-k' or its corresponding type declarations.
+
+    1 import { generateCombinations } from ""../all-combinations-of-size-k"";
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FAIL maths/test/ugly_numbers.test.ts
+  ● Ugly Numbers
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 11
+    + Received  + 44
+
+      Array [
+    -   1,
+    -   2,
+    -   3,
+    -   4,
+    -   5,
+    -   6,
+    -   8,
+    -   9,
+    -   10,
+    -   12,
+    -   15,
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 1,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 2,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 3,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 4,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 5,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 6,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 8,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 9,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 10,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 12,
+    +   },
+    +   Object {
+    +     ""done"": false,
+    +     ""value"": 15,
+    +   },
+      ]
+
+      3 | test('Ugly Numbers', () => {
+      4 |   const uglyNumbers = UglyNumbers();
+    > 5 |   expect(Array(11).fill(undefined).map(() => uglyNumbers.next())).toEqual([1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15]);
+        |                                                                   ^
+      6 | })
+      7 |
+
+      at Object.<anonymous> (maths/test/ugly_numbers.test.ts:5:67)
+
+
+Test Suites: 3 failed, 77 passed, 80 total
+Tests:       1 failed, 691 passed, 692 total
+Snapshots:   0 total
+Time:        23.258 s
+Ran all test suites.
+Error: Process completed with exit code 1.`
+
+### Expected Behavior
+
+All test cases should pass and all the build for each and every PRs should run successfully !
+
+### Actual Behavior
+
+But in this case test cases are faling and build is failing due this.
+need to fix it.
+
+### Steps to reproduce (if applicable)
+
+_No response_
+
+### Specifications
+
+_No response_",1746214656,"Hi @raklaptudirm @appgurueu please make it high priority.
+this need to be fix......
+Thank You !"
+1922188875,169,[BUG]: QuickSelect test case is failing,"### Motivation
+
+Quick Select test case is failing due to this overall PR builds is failing.
+Need to fix that !
+
+![Screenshot from 2023-10-02 21-21-28](https://github.com/TheAlgorithms/TypeScript/assets/68775519/b59cf017-77a1-4bfd-8b81-d0b596683b46)
+
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1744375108,"Hi @appgurueu ,
+I think we have to ask or assign @prisojacques to resolve this bug he added the code of quick select.
+and this issue should be high priority (because every PR's build are failing due to this.)
+What's you views on this ?"
+1922188875,169,[BUG]: QuickSelect test case is failing,"### Motivation
+
+Quick Select test case is failing due to this overall PR builds is failing.
+Need to fix that !
+
+![Screenshot from 2023-10-02 21-21-28](https://github.com/TheAlgorithms/TypeScript/assets/68775519/b59cf017-77a1-4bfd-8b81-d0b596683b46)
+
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1744667625,"> Hi @appgurueu , I think we have to ask or assign @prisojacques to resolve this bug he added the code of quick select. and this issue should be high priority (because every PR's build are failing due to this.) What's you views on this ?
+
+I'm not sure @prisojacques is responsible; the regressions seems to have been introduced by the switch to a random pivot selection strategy (https://github.com/TheAlgorithms/TypeScript/commit/4db32785a0ccd2f34950f12f3c1d20b065f73e03). I've made quick ""fix"" PR that just reverts that commit for now. I'll take a closer look later."
+1922188875,169,[BUG]: QuickSelect test case is failing,"### Motivation
+
+Quick Select test case is failing due to this overall PR builds is failing.
+Need to fix that !
+
+![Screenshot from 2023-10-02 21-21-28](https://github.com/TheAlgorithms/TypeScript/assets/68775519/b59cf017-77a1-4bfd-8b81-d0b596683b46)
+
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1765212474,"Hi @appgurueu , I think I've managed to fix this issue in #207 . I've described in more details why I've made each respective change inside my PR. If you have some free time, I would appreciate if you can take a look over it. :blush: "
+1922188875,169,[BUG]: QuickSelect test case is failing,"### Motivation
+
+Quick Select test case is failing due to this overall PR builds is failing.
+Need to fix that !
+
+![Screenshot from 2023-10-02 21-21-28](https://github.com/TheAlgorithms/TypeScript/assets/68775519/b59cf017-77a1-4bfd-8b81-d0b596683b46)
+
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1767997725,"Thank You @vladimir-cucu !
+@appgurueu @raklaptudirm please look into this."
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1467996154,"> The Python code run in our GitHub Action [directory_formatter.yml](https://github.com/TheAlgorithms/TypeScript/blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+I disagree. It is not necessary to duplicate this script in TypeScript as long as the Python script is working well. CI is ""meta"" for this repo and does not have to be in TS. We're not converting the embedded bash either."
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1468108566,"https://github.com/TheAlgorithms/JavaScript/issues/160
+"
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1468523200,"The scripts should be rather taken from the [scripts](https://github.com/TheAlgorithms/scripts) repository, IMO.
+There are still a few pending changes on that, so, you might want to wait a bit.
+"
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1468647508,The action currently downloads the script from the script repository using `wget`.
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1469139425,"Oh, I meant using the newly actions we've created (still WIP, though).
+"
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1475162380,A bit more on why creating a TypeScript implementation is a good idea… https://github.com/TheAlgorithms/Rust/issues/473
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1478861106,"So, we're not going to use this or? 🤔
+"
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1478919595,I closed by mistake.  I will let you all decide how you want to proceed.
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1507586607,"Feel free to choose, @raklaptudirm and @appgurueu.
+I'm fine with any of the options. 🙂
+"
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1508568093,"If someone submits a decent TS implementation, I'd be fine with switching, but this is definitely not a priority."
+1623202731,115,[FEATURE]: Port build_directory_md from Python to TypeScript,"### Motivation
+
+The Python code run in our GitHub Action [directory_formatter.yml](../blob/master/.github/workflows/directory_formatter.yml#L37) should be replaced by TypeScript code so that contributors to this repo are better able to maintain it.
+
+This process should be done in ___three separate pull requests___.
+* [ ] Run both the Python and TypeScript versions in the same GitHub Action and fail if the two files are not identical.
+* [ ] Remove the running of the Python code in the GitHub Action and remove the Python file.
+* [ ] [_Optional_] Modify the TypeScript version to add any new information and/or look and feel.
+
+### Examples
+
+_No response_
+
+### Possible workarounds
+
+_No response_",1508618288,"ChatGPT ported the JavaScript repo’s implementation to TypeScript…
+
+```typescript
+import path from 'path'
+import fs from 'fs'
+import { globby } from 'globby'
+
+function pathPrefix(i: number): string {
+  const res = '  '.repeat(i)
+  return res + '*'
+}
+
+function printPath(oldPath: string, newPath: string, output: string[]): string {
+  const oldParts = oldPath.split(path.sep)
+  const newParts = newPath.split(path.sep)
+
+  for (let i = 0; i < newParts.length; ++i) {
+    const newPart = newParts[i]
+    if (i + 1 > oldParts.length || oldParts[i] !== newPart) {
+      if (newPart) {
+        output.push(`${pathPrefix(i)} **${newPart.replace('_', ' ')}**`)
+      }
+    }
+  }
+
+  return newPath
+}
+
+function pathsToMarkdown(filePaths: string[]): string {
+  const output: string[] = []
+
+  let oldPath = ''
+  filePaths.sort(function (a, b) {
+    if (a.toLowerCase() < b.toLowerCase()) return -1
+    if (a.toLowerCase() > b.toLowerCase()) return 1
+    return 0
+  })
+
+  for (let filepath of filePaths) {
+    let filename = path.basename(filepath)
+    filepath = path.dirname(filepath)
+
+    if (filepath !== oldPath) {
+      oldPath = printPath(oldPath, filepath, output)
+    }
+
+    let indent = filepath.split(path.sep).length
+
+    // prepare the markdown-esque prefix to the file's line
+    const prefix = pathPrefix(indent)
+
+    // remove extension from filename
+    const name = path.basename(filename, "".js"")
+    const url = path.join(filepath, filename)
+
+    output.push(`${prefix} [${name}](${url})`)
+  }
+
+  return output.join('\n')
+}
+
+// get paths of all .js files - excluding node_modules, the .github folder, tests and config stuff
+globby([
+  '**/*.js',
+  '!(node_modules|.github)/**/*',
+  ""!**/test/**/*"",
+  '!**/*.test.js',
+  '!**/*.manual-test.js',
+  '!babel.config.js'
+])
+  // create markdown content
+  .then(pathsToMarkdown)
+  // write markdown to file
+  .then(markdown => fs.writeFileSync('DIRECTORY.md', markdown + '\n', { encoding: 'utf8' }))
+```"
+1391918777,22,Clarify project,"Could someone please state where to add the algorithms to? Like which directory and what should be the overall directory structure and stuff. It is not really clarified in the contribution guidelines, and the only pull request I can see is #21 which adds Fibonacci.ts to the project right along with the package.json and stuff, which does not seem quite right.",1263353599,I'd say something like `src/<package>/File.ts`. `Fibonacci.ts` would go to `src/Math/Fibonacci.ts`.
+1386608396,15,Add Absolute Number Function in Maths ,,1292048649,@Owais28 I think its already there https://github.com/TheAlgorithms/TypeScript/blob/master/Maths/AbsoluteValue.ts
+1386608396,15,Add Absolute Number Function in Maths ,,1292055866,https://github.com/TheAlgorithms/TypeScript/pull/31 - Corresponding PR
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1272260273,Raised a PR to check perfect square - https://github.com/TheAlgorithms/TypeScript/pull/37
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1292153283,"@Owais28  Added CalculateMedian feature https://github.com/TheAlgorithms/TypeScript/pull/73
+"
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1771489898,Hi @Owais28 I have made a PR for [matrix multiplication feature](https://github.com/TheAlgorithms/TypeScript/pull/211).
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1772172157,"> Hi @Owais28 I have made a PR for [matrix multiplication feature](https://github.com/TheAlgorithms/TypeScript/pull/211).
+
+@appgurueu "
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1774023653,"Hi, I just checked and some of the ticks are missing in the above list.
+
+- Armstrong number: https://github.com/TheAlgorithms/TypeScript/pull/44
+- Decimal to Binary conversion: https://github.com/TheAlgorithms/TypeScript/pull/23
+- Function to check a number is Divisible by another number or not: https://github.com/TheAlgorithms/TypeScript/pull/43
+- Function to check a number is Pronic: https://github.com/TheAlgorithms/TypeScript/pull/82
+- Function to check a number is Square free: https://github.com/TheAlgorithms/TypeScript/pull/94"
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1774031653,"> Hi, I just checked and some of the ticks are missing in the above list.
+> 
+> - Armstrong number: https://github.com/TheAlgorithms/TypeScript/pull/44
+> - Decimal to Binary conversion: https://github.com/TheAlgorithms/TypeScript/pull/23
+> - Function to check a number is Divisible by another number or not: https://github.com/TheAlgorithms/TypeScript/pull/43
+> - Function to check a number is Pronic: https://github.com/TheAlgorithms/TypeScript/pull/82
+> - Function to check a number is Square free: https://github.com/TheAlgorithms/TypeScript/pull/94
+
+Updated. Thank you @marvinbuff 🙂"
+1384927167,10,Add some maths' functions,"## List of some important functions 
+
+- [x] Absolute number
+- [ ] Aliquot Sum of a number
+- [ ] Area of various shapes
+- [ ] Arithmetic-Geometric Mean
+- [x] Armstrong number
+- [x] Average Mean
+- [x] Average Median
+- [ ] Binary to Decimal conversion
+- [ ] Binary Exponentiation Iterative
+- [x] Decimal to Binary conversion
+- [ ] Binomial Coefficient
+- [ ] Bisection Method
+- [ ] Function to check Co-prime 
+- [ ] Decimal Expansion
+- [ ] Decimal Isolation
+- [ ] Degree to Radian Conversion
+- [ ] Euler Method
+- [x] Eulers Totient
+- [x] Factorial
+- [ ] Factors
+- [ ] Fibonacci
+- [ ] Find HCM
+- [x] Find LCM
+- [x] Finding a minimum in a array of numbers
+- [x] Function to check a number is Divisible by another number or not
+- [x] Function to check a number is Even
+- [x] Function to check a number is Odd
+- [x] Function to check a number is Pronic
+- [x] Function to check a number is Square free
+- [ ] Juggler Sequence
+- [x] Leap year
+- [x] Matrix Multiplication
+- [ ] Number of digits in a number
+- [ ] Pascal Triangle
+- [ ] Perfect Cube
+- [ ] Perfect Square
+- [ ] Perfect Numbers
+- [ ] Prime check
+- [x] Radian to Degree Conversion
+- [x] Finding Square root
+- [x] Sum of Digits of a given number
+",1774159755,"> > Hi, I just checked and some of the ticks are missing in the above list.
+> > 
+> > * Armstrong number: https://github.com/TheAlgorithms/TypeScript/pull/44
+> > * Decimal to Binary conversion: https://github.com/TheAlgorithms/TypeScript/pull/23
+> > * Function to check a number is Divisible by another number or not: https://github.com/TheAlgorithms/TypeScript/pull/43
+> > * Function to check a number is Pronic: https://github.com/TheAlgorithms/TypeScript/pull/82
+> > * Function to check a number is Square free: https://github.com/TheAlgorithms/TypeScript/pull/94
+> 
+> Updated. Thank you @marvinbuff 🙂
+;
+And `matrix_multiplication` is also not ticked, thanks: [https://github.com/TheAlgorithms/TypeScript/pull/211](https://github.com/TheAlgorithms/TypeScript/pull/211)"

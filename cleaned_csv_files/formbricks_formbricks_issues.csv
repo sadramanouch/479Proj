@@ -1,0 +1,3953 @@
+issue_id,issue_number,issue_title,issue_body,comment_id,comment_body
+2680214929,4348,Unable to migrate from v2.6 to v2.7,"### Issue Summary
+
+I use self-hosted version. Currently on v.2.6.0. When I run the database migration command (migration to v2.7) it fails with an error and Formbricks v2.7.0 can't launch.
+
+I'm using `pgvector/pgvector:pg15` image.
+
+When I run migration command for v2.6 (my current version) it's OK, says `Data migration completed`
+
+### Expected Behavior
+
+Migration should be successful
+
+### Other information (incl. screenshots, Formbricks version, steps to reproduce,...)
+
+Error from `formbricks-migration` container
+```
+ > @formbricks/database@0.1.0 data-migration:v2.7 /app/packages/database
+ > pnpm data-migration:add-teams
+
+
+ > @formbricks/database@0.1.0 data-migration:add-teams /app/packages/database
+ > ts-node ./data-migrations/20241107161932_add_teams/data-migration.ts
+
+ Starting data migration...
+ An error occurred during migration: PrismaClientKnownRequestError:
+ Invalid `transactionPrisma.invite.findMany()` invocation in
+ /app/packages/database/data-migrations/20241107161932_add_teams/data-migration.ts:26:55
+
+   23 await prisma.$transaction(
+   24   async (transactionPrisma) => {
+   25     // Fetch all invites and group them by organizationId
+ → 26     const invites = (await transactionPrisma.invite.findMany(
+ The column `Invite.deprecatedRole` does not exist in the current database.
+     at Mn.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7753)
+     at Mn.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7061)
+     at Mn.request (/app/node_modules/@prisma/client/runtime/library.js:121:6745)
+     at async l (/app/node_modules/@prisma/client/runtime/library.js:130:9633)
+     at async prisma.$transaction.timeout (/app/packages/database/data-migrations/20241107161932_add_teams/data-migration.ts:26:24)
+     at async Proxy._transactionWithCallback (/app/node_modules/@prisma/client/runtime/library.js:130:8000)
+     at async runMigration (/app/packages/database/data-migrations/20241107161932_add_teams/data-migration.ts:23:3) {
+   code: 'P2022',
+   clientVersion: '5.20.0',
+   meta: { modelName: 'Invite', column: 'Invite.deprecatedRole' }
+ }
+  ELIFECYCLE  Command failed with exit code 1.
+  ELIFECYCLE  Command failed with exit code 1.
+```
+
+### Your Environment
+
+Self-hosted Formbricks",,
+2663566473,4326,Enable custom scopes for OIDC,"### Is your feature request related to a problem? Please describe.
+
+I'm trying to integrate Discord as a oauth2 / oidc provider and well, Discord aren't supporting the ""profile"" scope in their authentication. Using the current setup discord will redirect to a page with this :
+
+```json
+{""scope"": [""2""]}
+```
+
+
+### Describe the solution you'd like
+
+This leads me to this line where the OIDC scopes are hardcoded.
+
+https://github.com/formbricks/formbricks/blob/main/packages/lib/authOptions.ts#L207
+
+Removing the ""profile"" from the url called by Formbricks gets me a little further, after accepting the Discord's oauth I get a `AccessDenied`.
+
+While at it, it would be useful not to be dependent on a service with "".well-known/openid-configuration"" link since the provider _might_ not provide or is missing fields.
+
+### Additional context
+
+list of scopes from the discord oauth2 website
+
+![Image](https://github.com/user-attachments/assets/cbfb45da-262c-40f8-a4dd-111ad6b4930e)
+",,
+2661917324,4324,Letters outside a-z not allowed in name,"### Issue Summary
+
+Names with e.g. Norwegian letters `æøå` letters is not allowed, as set up in [Zod schema](https://github.com/formbricks/formbricks/blob/762a3ca6264600309786ea285a5eeef22ef1483b/packages/types/user.ts#L29) with regex `/^[a-zA-Z0-9\s]+$/`. This would apply to all letters with accents etc. as well.
+
+Is this intentional?
+
+### Expected Behavior
+
+I would assume all ""normal"" letters that you can find in names should be allowed?
+
+### Other information (incl. screenshots, Formbricks version, steps to reproduce,...)
+
+Names are fetched from Microsoft Entra/Azure AD. Discovered when coworker with `æ` in name could not log in.
+
+Docker logs:
+```js
+[
+	{
+		validation: 'regex',
+		code: 'invalid_string',
+		message: 'Name should only contain letters, numbers, and spaces',
+		path: ['name']
+	}
+];
+```
+
+### Your Environment
+
+Self-hosted Formbricks",,
+2661684515,4321,Move UI package to module,"We will also move the UI package into the main app module structure to have all the app logic in one place.
+
+For this please:
+- Move the components & lib folders of `packages/ui` to `apps/web/modules/ui`
+- Replace the existing `tailwind.config.js` in `/apps/web/tailwind.config.js` with the tailwind-config from the ui package
+- Rename the directories and files to kebab-case to conform with the Vercel code style guide
+- Make sure storybook accesses the ui components in `apps/web/modules/ui`
+- Remove the `packages/ui` package",,
+2660879759,4315,Auth-module Revamp,"Technical improvements to the auth module, moving API endpoints to server actions, code rewrite and optimizations with move to new `modules` folder and splitting auth features into community and enterprise features.
+
+Full Ticket: https://www.notion.so/formbricks/Auth-module-Revamp-13ee5de84a588049abdac744aae90c73?pvs=4",,
+2660767621,4313,Remove Experience page (for now),"From our initial user testing, we've found that the experience page doesn't yet provide enough value to users, as they can't dig deep enough into their insights, and when they only have surveys that don't generate insights, it's a confusing page for them.
+We will try again and come up with an updated concept that takes all this feedback into account.
+
+But first, to solve the current confusion, please remove the experience page from the navigation and app router. We can keep the code in the insights module as we may need it later.",,
+2658240337,4307,Move ee services to new module structure,"The EE service ( `packages/ee/lib/service.ts` ) is the last remaining code in the `ee` package.
+
+- Please move the code to `modules/ee/license` and follow the general folder structure moving the service to `modules/ee/license/lib/utils.ts` and the types to `modules/ee/license/types/enterprise-license.ts`
+- Move the license file to `modules/ee/LICENSE`
+- Modify `LICENSE` file in the root directory to match the new path of the LICENSE file and remove the `packages/ee` directory reference as well as the `apps/web/app/(ee)` reference.
+- Remove the `packages/ee` directory",,
+2657813333,4305,Move billing to new module structure,"The new module structure uses the app router only as an router but stores all the files in the `modules` directory.
+
+Please create a new module `modules/ee/billing` for all billing related pages, components and APIs. The goal is that all code related to the billing feature is grouped in this folder to also make sure that the enterprise license is used for all billing-related code.
+
+For pages, the page.tsx in the app router only reference the corresponding page.tsx file in the billing module (see `apps/web/app/(app)/environments/[environmentId]/product/teams/page.tsx` for an example).
+
+For the api follow the same approach where you create an api folder within the billing module at `modules/ee/billing/api`.
+
+All components and lib files that are currently colocated in the router should also be moved to the modules directory.",,
+2654438242,4298,Show response time for individual responses,"### Is your feature request related to a problem? Please describe.
+
+<img width=""680"" alt=""Screenshot 2024-11-13 at 07 54 06"" src=""https://github.com/user-attachments/assets/7e4794d9-f58c-4ceb-b321-eed3ed2e7512"">
+
+
+### Describe the solution you'd like
+
+Display the response time in the response table as well as SingleResponseCard and CSV export.
+
+### Additional context
+
+_No response_",,
+2653453886,4294,The column `Invite.deprecatedRole` does not exist in DB,"### Issue Summary
+
+When I try to [migrate](https://formbricks.com/docs/self-hosting/migration-guide) in order to use the last version of Formbricks, I see this error:
+
+```
+  23 await prisma.$transaction(
+  24   async (transactionPrisma) => {
+  25     // Fetch all invites and group them by organizationId
+→ 26     const invites = (await transactionPrisma.invite.findMany(
+The column `Invite.deprecatedRole` does not exist in the current database.
+    at Mn.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7753)
+    at Mn.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7061)
+    at Mn.request (/app/node_modules/@prisma/client/runtime/library.js:121:6745)
+    at async l (/app/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at async prisma.$transaction.timeout (/app/packages/database/data-migrations/20241107161932_add_teams/data-migration.ts:26:24)
+    at async Proxy._transactionWithCallback (/app/node_modules/@prisma/client/runtime/library.js:130:8000)
+    at async runMigration (/app/packages/database/data-migrations/XXXXXXXXX_add_teams/data-migration.ts:23:3) {
+  code: 'P2022',
+  clientVersion: '5.20.0',
+  meta: { modelName: 'Invite', column: 'Invite.deprecatedRole' }
+}
+```
+
+### Expected Behavior
+
+Fix the database and/or skip the validation because I'm not using invites.
+
+### Other information (incl. screenshots, Formbricks version, steps to reproduce,...)
+
+_No response_
+
+### Your Environment
+
+Self-hosted Formbricks",,
+2626516520,4188,[BUG] Formbricks isn't running properly in github Codespace,"### Issue Summary
+
+Formbricks setup in github codespace is showing error.
+
+### Screenshot of problem
+![Screenshot 2024-10-31 154107](https://github.com/user-attachments/assets/dc3acd25-6efa-40bb-b3a2-87382bf0dfb1)
+
+### error log
+```
+pnpm dev --filter=@formbricks/web... --filter=@formbricks/demo...
+@arg387 ➜ /workspace (main) $ pnpm dev --filter=@formbricks/web... --filter=@formbricks/demo...
+
+> formbricks@0.0.0 dev /workspace
+> turbo run dev --parallel ""--filter=@formbricks/web..."" ""--filter=@formbricks/demo...""
+
+turbo 2.0.11
+
+• Packages in scope: @formbricks/api, @formbricks/config-typescript, @formbricks/database, @formbricks/demo, @formbricks/ee, @formbricks/email, @formbricks/eslint-config, @formbricks/js, @formbricks/js-core, @formbricks/lib, @formbricks/surveys, @formbricks/types, @formbricks/ui, @formbricks/web
+• Running dev in 14 packages
+• Remote caching disabled
+@formbricks/web:dev: cache bypass, force executing def666ed95b7fe51
+@formbricks/api:dev: cache bypass, force executing 459bd1a62566f2ca
+@formbricks/email:dev: cache bypass, force executing de134b5735b93cd5
+@formbricks/js-core:dev: cache bypass, force executing 3e08f4a8e8dfdbeb
+@formbricks/surveys:dev: cache bypass, force executing 809fb901b23a2695
+@formbricks/demo:dev: cache bypass, force executing f4f205d5a8a3efa9
+@formbricks/js:dev: cache bypass, force executing 9621c8c4db00b096
+@formbricks/email:dev: 
+@formbricks/email:dev: > @formbricks/email@1.0.0 dev /workspace/packages/email
+@formbricks/email:dev: > email dev --port 3003
+@formbricks/email:dev: 
+@formbricks/demo:dev: 
+@formbricks/demo:dev: > @formbricks/demo@0.1.0 dev /workspace/apps/demo
+@formbricks/demo:dev: > next dev -p 3002 --turbo
+@formbricks/demo:dev: 
+@formbricks/surveys:dev: 
+@formbricks/surveys:dev: > @formbricks/surveys@1.0.0 dev /workspace/packages/surveys
+@formbricks/surveys:dev: > vite build --watch --mode dev
+@formbricks/surveys:dev: 
+@formbricks/api:dev: 
+@formbricks/api:dev: > @formbricks/api@1.9.0 dev /workspace/packages/api
+@formbricks/api:dev: > vite build --watch
+@formbricks/api:dev: 
+@formbricks/web:dev: 
+@formbricks/web:dev: > @formbricks/web@2.6.0 dev /workspace/apps/web
+@formbricks/web:dev: > next dev -p 3000 --turbo
+@formbricks/web:dev: 
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: > @formbricks/js-core@1.0.0 dev /workspace/packages/js-core
+@formbricks/js-core:dev: > vite build --watch --mode dev
+@formbricks/js-core:dev: 
+@formbricks/js:dev: 
+@formbricks/js:dev: > @formbricks/js@3.0.1 dev /workspace/packages/js
+@formbricks/js:dev: > vite build --watch --mode dev
+@formbricks/js:dev: 
+@formbricks/email:dev:     React Email 2.1.6
+@formbricks/email:dev:     Running preview at:          http://localhost:3003
+@formbricks/email:dev: 
+  ⠙ Getting react-email preview server ready...
+@formbricks/email:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/email:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/email:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/email:dev: https://nextjs.org/telemetry
+@formbricks/email:dev: 
+@formbricks/demo:dev:   ▲ Next.js 14.2.15 (turbo)
+@formbricks/demo:dev:   - Local:        http://localhost:3002
+@formbricks/demo:dev: 
+@formbricks/demo:dev:  ✓ Starting...
+@formbricks/demo:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/demo:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/demo:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/demo:dev: https://nextjs.org/telemetry
+  ⠸ Getting react-email preview server ready...
+@formbricks/js:dev: vite v5.4.8 building for dev...
+@formbricks/js:dev: 
+@formbricks/js:dev: watching for file changes...
+@formbricks/js-core:dev: vite v5.4.8 building for dev...
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: watching for file changes...
+@formbricks/api:dev: vite v5.4.8 building for production...
+@formbricks/api:dev: 
+@formbricks/api:dev: watching for file changes...
+@formbricks/js:dev: 
+@formbricks/js:dev: build started...
+@formbricks/api:dev: 
+@formbricks/api:dev: build started...
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: build started...
+@formbricks/demo:dev:  ✓ Ready in 10.9s
+@formbricks/surveys:dev: vite v5.4.8 building for dev...
+@formbricks/surveys:dev: 
+@formbricks/surveys:dev: watching for file changes...
+@formbricks/surveys:dev: 
+  ⠹ Getting react-email preview server ready...
+@formbricks/web:dev:   ▲ Next.js 14.2.15 (turbo)
+@formbricks/web:dev:   - Local:        http://localhost:3000
+@formbricks/web:dev:   - Environments: .env
+@formbricks/web:dev:   - Experiments (use with caution):
+@formbricks/web:dev:     · staleTimes
+@formbricks/web:dev:     · instrumentationHook
+@formbricks/web:dev: 
+  ⠋ Getting react-email preview server ready...
+@formbricks/web:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/web:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/web:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/web:dev: https://nextjs.org/telemetry
+  ✔ Ready in 22.5s
+@formbricks/email:dev: 
+@formbricks/js:dev: src/index.ts:1:37 - error TS2307: Cannot find module '@formbricks/js-core' or its corresponding type declarations.
+@formbricks/js:dev: 
+@formbricks/js:dev: 1 import { type TFormbricksApp } from ""@formbricks/js-core"";
+@formbricks/js:dev:                                       ~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: src/lib/load-formbricks.ts:70:11 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js:dev: 
+@formbricks/js:dev: 70           // @ts-expect-error -- Required for dynamic function calls
+@formbricks/js:dev:              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: src/lib/load-formbricks.ts:102:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js:dev: 
+@formbricks/js:dev: 102     // @ts-expect-error -- Required for dynamic function calls
+@formbricks/js:dev:         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: 
+✓ 2 modules transformed.
+
+@formbricks/js:dev: [vite:dts] Start generate declaration files...
+dist/index.js  2.69 kB │ gzip: 0.97 kB │ map: 5.85 kB
+@formbricks/js:dev: [vite:dts] Start rollup declaration files...
+@formbricks/js:dev: Analysis will use the bundled TypeScript version 5.4.2
+@formbricks/web:dev:  ✓ Compiled in 40.7s
+@formbricks/web:dev:  ✓ Ready in 60.8s
+@formbricks/web:dev:  ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+@formbricks/web:dev:  ⚠ See instructions if you need to configure Turbopack:
+@formbricks/web:dev:   https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+@formbricks/web:dev: 
+✓ 9 modules transformed.
+
+@formbricks/api:dev: [vite:dts] Start generate declaration files...
+dist/index.js  7.31 kB │ gzip: 2.06 kB │ map: 20.94 kB
+@formbricks/api:dev: [vite:dts] Start rollup declaration files...
+@formbricks/api:dev: Analysis will use the bundled TypeScript version 5.4.2
+@formbricks/js-core:dev: src/lib/api.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:45:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 45     // @ts-expect-error
+@formbricks/js-core:dev:        ~~~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:112:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 112     // @ts-expect-error
+@formbricks/js-core:dev:         ~~~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/widget.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: ../lib/responseQueue.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: 
+✓ 24 modules transformed.
+
+@formbricks/js-core:dev: [vite:dts] Start generate declaration files...
+computing gzip size (0)...Ensured directory exists: /workspace/apps/web/public/js
+dist/index.umd.cjs  29.37 kB │ gzip: 9.07 kB │ map: 123.06 kB
+@formbricks/js-core:dev: Copied 3 files to /workspace/apps/web/public/js (formbricks)
+@formbricks/js-core:dev: [vite:dts] Start rollup declaration files...
+dist/index.cjs  1.35 kB │ gzip: 0.70 kB │ map: 5.93 kB
+@formbricks/js:dev: [vite:dts] Declaration files built in 88522ms.
+@formbricks/js:dev: 
+@formbricks/js:dev: built in 89539ms.
+@formbricks/js-core:dev: Analysis will use the bundled TypeScript version 5.4.2
+✓ 169 modules transformed.
+
+@formbricks/surveys:dev: [vite:dts] Start generate declaration files...
+computing gzip size (0)...Ensured directory exists: /workspace/apps/web/public/js
+computing gzip size (1)...Copied 4 files to /workspace/apps/web/public/js (surveys)
+dist/style.css    1.99 kB │ gzip:   0.68 kB
+@formbricks/surveys:dev: dist/index.js   742.45 kB │ gzip: 138.84 kB
+@formbricks/surveys:dev: [vite:dts] Start rollup declaration files...
+@formbricks/js-core:dev: Terminated
+@formbricks/js-core:dev:  ELIFECYCLE  Command failed with exit code 143.
+@formbricks/js-core:dev: ERROR: command finished with error: command (/workspace/packages/js-core) /usr/local/share/npm-global/bin/pnpm run dev exited (143)
+@formbricks/email:dev: 
+@formbricks/email:dev: shutting down dev server
+@formbricks/demo:dev: 
+@formbricks/email:dev: 
+@formbricks/js-core#dev: command (/workspace/packages/js-core) /usr/local/share/npm-global/bin/pnpm run dev exited (143)
+
+ Tasks:    0 successful, 7 total
+Cached:    0 cached, 7 total
+  Time:    2m13.192s 
+Failed:    @formbricks/js-core#dev
+
+ ERROR  run failed: command  exited (143)
+ ELIFECYCLE  Command failed with exit code 143.
+@arg387 ➜ /workspace (main) $ 
+```
+
+### Steps to Reproduce
+
+## Scenario:
+ - First fork the [formbricks repo](https://github.com/formbricks/formbricks) in your own github account.
+ - Now visit the forked repo inside your account.
+ - click the ""code"" button(at the right side) and visit codespaces to click create codespace for the forked repo.
+ - This will start loading the Codespace. Keep in mind this might take a few minutes to complete depending on your internet connection and the instance availability.
+ - Once the Codespace is loaded, you will be redirected to the VSCode editor. You can start working on your project in this environment.
+
+
+### Expected behavior
+
+I have followed all the guideline given in the [Formbricks docs](https://formbricks.com/docs/developer-docs/contributing/codespaces). It should work as mentioned in the guideline. I have tried four times using different workspace. But it is not working.
+
+### Other information
+
+## List of extension installed:
+![Screenshot 2024-10-31 154842](https://github.com/user-attachments/assets/66600d85-9279-44f7-a953-4c66c97799fe)
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Windows
+- Browser: Google Chrome
+- Node: v20.2.0
+- npm: 9.6.6
+```
+",,
+2614173479,4029,"[BUG] Cant upload images (avatar, logo, etc.) (using Nginx)","### Issue Summary
+
+When trying to upload/view any image I am getting the following error in the console and the images are not loading. I am using nginx as reverse proxy and have set the correct host names in the .env file. 
+
+### The error
+ ⨯ TypeError: fetch failed
+    at node:internal/deps/undici/undici:13185:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async fetchExternalImage (/home/nextjs/node_modules/next/dist/server/image-optimizer.js:589:17)
+    at async NextNodeServer.imageOptimizer (/home/nextjs/node_modules/next/dist/server/next-server.js:649:48)
+    at async cacheEntry.imageResponseCache.get.incrementalCache (/home/nextjs/node_modules/next/dist/server/next-server.js:182:65)
+    at async /home/nextjs/node_modules/next/dist/server/response-cache/index.js:90:36
+    at async /home/nextjs/node_modules/next/dist/lib/batcher.js:45:32 {
+  [cause]: AggregateError [ECONNREFUSED]:
+      at internalConnectMultiple (node:net:1118:18)
+      at internalConnectMultiple (node:net:1186:5)
+      at afterConnectMultiple (node:net:1685:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error], [Error] ]
+  }
+}
+
+### My nginx config (short version)
+location / {
+
+  proxy_pass        http://127.0.0.1:3000;
+  proxy_redirect    off;
+  proxy_set_header  Host $host;
+  proxy_set_header  X-Real-IP $remote_addr;
+  proxy_set_header  X-Forwarded-Proto $scheme;
+  proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header  X-Forwarded-Host $host;
+  proxy_set_header  X-Forwarded-Port $server_port;
+  
+  proxy_http_version 1.1;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection ""upgrade"";
+
+}
+
+
+
+### Steps to Reproduce
+
+1. Click on upload
+2. Short loading time
+3. Image is not showing and getting Error 500 in the browser console
+
+
+### Expected behavior
+
+Image is uploading and showing
+
+### Other information
+
+I have the latest version installed via docker and already tried reinstalling. 
+
+### Screenshots
+
+![grafik](https://github.com/user-attachments/assets/2cdff128-12a5-4ec9-93b2-5bb262633ccb)
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [x] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Debian 11
+```
+",,
+2608798963,3994,[BUG] Airtable integration not working,"### Issue Summary
+
+The Airtable integration on a self-hosted instance doesn't work. The redirect works, but then Formbricks returns a HTTP 500 error, and on the console I see this:
+
+```
+Error: [
+  {
+    ""code"": ""invalid_type"",
+    ""expected"": ""string"",
+    ""received"": ""undefined"",
+    ""path"": [
+      ""access_token""
+    ],
+    ""message"": ""Required""
+  },
+  {
+    ""code"": ""invalid_type"",
+    ""expected"": ""string"",
+    ""received"": ""undefined"",
+    ""path"": [
+      ""refresh_token""
+    ],
+    ""message"": ""Required""
+  },
+  {
+    ""code"": ""invalid_type"",
+    ""expected"": ""number"",
+    ""received"": ""nan"",
+    ""path"": [
+      ""expires_in""
+    ],
+    ""message"": ""Expected number, received nan""
+  }
+]
+    at u (/home/nextjs/apps/web/.next/server/app/(app)/environments/[environmentId]/integrations/airtable/page.js:1:21848)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async b (/home/nextjs/apps/web/.next/server/app/api/v1/integrations/airtable/callback/route.js:1:2268)
+    at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36957
+    at async eC.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27552)
+    at async eC.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38291)
+    at async doRender (/home/nextjs/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/home/nextjs/node_modules/next/dist/server/base-server.js:1574:28)
+    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/nextjs/node_modules/next/dist/server/base-server.js:1482:28)
+    at async NextNodeServer.renderPageComponent (/home/nextjs/node_modules/next/dist/server/base-server.js:1908:24)
+ ⨯ Error: No response is returned from route handler '/app/apps/web/app/api/v1/integrations/airtable/callback/route.ts'. Ensure you return a `Response` or a `NextResponse` in all branches of your handler.
+    at /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37122
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eC.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27552)
+    at async eC.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38291)
+    at async doRender (/home/nextjs/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/home/nextjs/node_modules/next/dist/server/base-server.js:1574:28)
+    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/nextjs/node_modules/next/dist/server/base-server.js:1482:28)
+    at async NextNodeServer.renderPageComponent (/home/nextjs/node_modules/next/dist/server/base-server.js:1908:24)
+    at async NextNodeServer.renderToResponseImpl (/home/nextjs/node_modules/next/dist/server/base-server.js:1946:32)
+    at async NextNodeServer.pipeImpl (/home/nextjs/node_modules/next/dist/server/base-server.js:921:25)
+```
+
+### Steps to Reproduce
+
+1. Go to the official docs for the [airtable integration](https://formbricks.com/docs/self-hosting/integrations#airtable)
+2. Follow the self-hosted steps
+3. Copy the client ID and define it as `AIRTABLE_CLIENT_ID` environment variable
+4. Redeploy Formbricks
+5. Click on the ""Connect"" button on the Airtable integration (which was greyed-out until we reconfigured the `AIRTABLE_CLIENT_ID` variable)
+6. Select base and click on ""Grant access"" on Airtable
+
+
+### Expected behavior
+
+1. Browser redirects back to Formbricks
+2. Formbricks activates the integration
+
+### Other information
+
+The `AIRTABLE_REDIRECT_URL` is not used in the code, thus it's not required.  
+As guessed, the redirect URL is automatically built [here](apps/web/app/api/v1/integrations/airtable/callback/route.ts#L47).
+
+The docs should be updated, I'll try to do that in a dedicated PR.
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+Official `ghcr.io/formbricks/formbricks:v2.5.3` image.  
+Also tried `ghcr.io/formbricks/formbricks:v2.6.0.` (and applied migrations) with the same result.
+```
+",,
+2601955575,3948, Real-time Survey Analytics and Insights,"### Is your feature request related to a problem? Please describe.
+
+Yes, the current survey platform allows for survey creation and sharing, but lacks the ability to provide immediate, real-time feedback and insights to users. they need to either manually export survey data for analysis / wait until a survey is fully completed before reviewing responses.
+
+### Describe the solution you'd like
+
+Response rates over time.
+User sentiment analysis based on answers to qualitative questions.
+Key trends in multiple-choice responses.
+ Users should also be able to export these insights into various formats (PDF, CSV) for sharing or further analysis.
+
+### Describe alternatives you've considered
+
+Google Data Studio, Power BI
+this would require additional configuration and complexity for users, while real-time analytics built directly into the platform would provide a more seamless experience.
+
+### Additional context
+
+ It can also serve as a value-added tool for those looking to make data-driven decisions without needing technical expertise or additional tools. Integrating this feature with existing collaboration tools-Slack or notion",,
+2589422070,3783,[BUG] React-Native SDK al,"### Issue Summary
+
+I tried to integrate Formbricks ReactNative SDK into my mobile app using the documentation here https://formbricks.com/docs/developer-docs/react-native-in-app-surveys 
+My formbricks installation is self-hosted and can connect via the JS SDK, but when I try the React Native SDK I always see the following errors instead of the survey:
+
+```
+ LOG  🧱 Formbricks - 2024-10-15T16:17:20.923Z [DEBUG] - Fetched 1 surveys during sync: New Survey
+ LOG  🧱 Formbricks - 2024-10-15T16:17:20.924Z [DEBUG] - Formbricks: Action ""New Session"" tracked
+ WARN  🧱 Formbricks - Global error:  [TypeError: Cannot read property 'name' of undefined]
+ ERROR  🧱 Formbricks - 2024-10-15T16:17:20.924Z [ERROR] - {}
+
+```
+
+I tried the example code here https://github.com/formbricks/formbricks/blob/main/apps/demo-react-native/src/app.tsx and received the same result. I noticed that if I remove all surveys the error disappears, but I have not found any survey settings/configurations that allow a survey to appear without an error. I found a similar thread on the Discord help channel, but that issue was not resolved.
+
+### Steps to Reproduce
+
+1. Create sample survey on self-hosted formbricks install
+2. Followed integration instructions here (install NPM module, add initialization code, etc) : https://formbricks.com/docs/developer-docs/react-native-in-app-surveys 
+3. Ran project and received error
+
+
+ ```
+LOG  🧱 Formbricks - 2024-10-15T17:17:38.233Z [DEBUG] - Custom error handler: no
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.233Z [DEBUG] - Start initialize
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.233Z [DEBUG] - config not set; sending all attributes to backend
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.233Z [DEBUG] - Updating attributes: {""language"":""en"",""testAttr"":""attr-test""}
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.659Z [DEBUG] - No existing configuration found.
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.660Z [DEBUG] - No valid configuration found or it has been expired. Creating new config.
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.660Z [DEBUG] - Syncing.
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.661Z [DEBUG] - No cache option set for sync
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.661Z [DEBUG] - syncing with backend
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.829Z [DEBUG] - Fetched 1 surveys during sync: New Survey
+ LOG  🧱 Formbricks - 2024-10-15T17:17:38.832Z [DEBUG] - Formbricks: Action ""New Session"" tracked
+ WARN  🧱 Formbricks - Global error:  [TypeError: Cannot read property 'name' of undefined]
+ ERROR  🧱 Formbricks - 2024-10-15T17:17:38.850Z [ERROR] - {}
+```
+
+### Expected behavior
+
+1. Create sample survey on self-hosted formbricks install
+2. Followed integration instructions here (install NPM module, add initialization code, etc) : https://formbricks.com/docs/developer-docs/react-native-in-app-surveys 
+3. Survey appears on New Session action
+
+### Other information
+
+Self hosted Formbricks install on the latest version.
+React Native Version 0.72.4
+
+
+### Screenshots
+
+<img width=""922"" alt=""Screenshot 2024-10-15 at 10 26 52 AM"" src=""https://github.com/user-attachments/assets/543c2f96-f002-4d66-9ab3-e05a6486fafb"">
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: MacOS
+- Node: 14.2
+- npm: 6.14.17
+```
+",,
+2583264487,3566,[BUG] Server not staring after setup completion in GitHub Codespaces,"### Issue Summary
+
+Server not staring after setup completion in GitHub Codespaces.
+
+<details><summary>Click to view logs</summary>
+<p>
+
+```
+👋 Welcome to Codespaces! You are on a custom image defined in your devcontainer.json file.
+
+🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P)
+
+📝 Edit away, then run your build command to see your code running in the browser.
+pnpm dev --filter=@formbricks/web... --filter=@formbricks/demo...
+@sudovinay01 ➜ /workspace (main) $ pnpm dev --filter=@formbricks/web... --filter=@formbricks/demo...
+
+> formbricks@0.0.0 dev /workspace
+> turbo run dev --parallel ""--filter=@formbricks/web..."" ""--filter=@formbricks/demo...""
+
+turbo 2.0.11
+
+• Packages in scope: @formbricks/api, @formbricks/config-typescript, @formbricks/database, @formbricks/demo, @formbricks/ee, @formbricks/email, @formbricks/eslint-config, @formbricks/js, @formbricks/js-core, @formbricks/lib, @formbricks/surveys, @formbricks/types, @formbricks/ui, @formbricks/web
+• Running dev in 14 packages
+• Remote caching disabled
+@formbricks/surveys:dev: cache bypass, force executing c4c6c4dad140af9c
+@formbricks/email:dev: cache bypass, force executing 2794b9c9be89daf0
+@formbricks/api:dev: cache bypass, force executing 489a5eaaa9c50b78
+@formbricks/web:dev: cache bypass, force executing fdad4042edea1eec
+@formbricks/demo:dev: cache bypass, force executing af31682452873f7e
+@formbricks/js:dev: cache bypass, force executing 31da30b30f52f7e9
+@formbricks/js-core:dev: cache bypass, force executing 89589164ef2396bf
+@formbricks/surveys:dev: 
+@formbricks/surveys:dev: > @formbricks/surveys@1.0.0 dev /workspace/packages/surveys
+@formbricks/surveys:dev: > vite build --watch --mode dev
+@formbricks/surveys:dev: 
+@formbricks/web:dev: 
+@formbricks/web:dev: > @formbricks/web@2.5.3 dev /workspace/apps/web
+@formbricks/web:dev: > next dev -p 3000 --turbo
+@formbricks/web:dev: 
+@formbricks/api:dev: 
+@formbricks/api:dev: > @formbricks/api@1.9.0 dev /workspace/packages/api
+@formbricks/api:dev: > vite build --watch
+@formbricks/api:dev: 
+@formbricks/demo:dev: 
+@formbricks/demo:dev: > @formbricks/demo@0.1.0 dev /workspace/apps/demo
+@formbricks/demo:dev: > next dev -p 3002 --turbo
+@formbricks/demo:dev: 
+@formbricks/js:dev: 
+@formbricks/js:dev: > @formbricks/js@3.0.1 dev /workspace/packages/js
+@formbricks/js:dev: > vite build --watch --mode dev
+@formbricks/js:dev: 
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: > @formbricks/js-core@1.0.0 dev /workspace/packages/js-core
+@formbricks/js-core:dev: > vite build --watch --mode dev
+@formbricks/js-core:dev: 
+@formbricks/email:dev: 
+@formbricks/email:dev: > @formbricks/email@1.0.0 dev /workspace/packages/email
+@formbricks/email:dev: > email dev --port 3003
+@formbricks/email:dev: 
+@formbricks/email:dev:     React Email 2.1.6
+@formbricks/email:dev:     Running preview at:          http://localhost:3003
+@formbricks/email:dev: 
+@formbricks/email:dev:   ⠋ Getting react-email preview server ready...
+@formbricks/demo:dev:   ▲ Next.js 14.2.15 (turbo)
+@formbricks/demo:dev:   - Local:        http://localhost:3002
+@formbricks/demo:dev: 
+  ⠙ Getting react-email preview server ready...
+@formbricks/email:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/email:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/email:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/email:dev: https://nextjs.org/telemetry
+@formbricks/email:dev: 
+@formbricks/demo:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/demo:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/demo:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/demo:dev: https://nextjs.org/telemetry
+  ⠹ Getting react-email preview server ready...
+@formbricks/js:dev: vite v5.4.8 building for dev...
+@formbricks/js:dev: 
+@formbricks/js:dev: watching for file changes...
+@formbricks/js-core:dev: vite v5.4.8 building for dev...
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: watching for file changes...
+@formbricks/api:dev: vite v5.4.8 building for production...
+@formbricks/api:dev: 
+@formbricks/api:dev: watching for file changes...
+@formbricks/js:dev: 
+  ⠸ Getting react-email preview server ready...
+@formbricks/api:dev: 
+@formbricks/api:dev: build started...
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: build started...
+@formbricks/demo:dev:  ✓ Ready in 11.4s
+@formbricks/surveys:dev: vite v5.4.8 building for dev...
+@formbricks/surveys:dev: 
+@formbricks/surveys:dev: watching for file changes...
+@formbricks/surveys:dev: 
+  ⠼ Getting react-email preview server ready...
+@formbricks/web:dev:   ▲ Next.js 14.2.15 (turbo)
+@formbricks/web:dev:   - Local:        http://localhost:3000
+@formbricks/web:dev:   - Environments: .env
+@formbricks/web:dev:   - Experiments (use with caution):
+@formbricks/web:dev:     · staleTimes
+@formbricks/web:dev: 
+@formbricks/web:dev:  ✓ Starting...
+@formbricks/web:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@formbricks/web:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@formbricks/web:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@formbricks/web:dev: https://nextjs.org/telemetry
+  ✔ Ready in 24.5s
+@formbricks/email:dev: 
+@formbricks/js:dev: src/index.ts:1:37 - error TS2307: Cannot find module '@formbricks/js-core' or its corresponding type declarations.
+@formbricks/js:dev: 
+@formbricks/js:dev: 1 import { type TFormbricksApp } from ""@formbricks/js-core"";
+@formbricks/js:dev:                                       ~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: src/lib/load-formbricks.ts:70:11 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js:dev: 
+@formbricks/js:dev: 70           // @ts-expect-error -- Required for dynamic function calls
+@formbricks/js:dev:              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: src/lib/load-formbricks.ts:102:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js:dev: 
+@formbricks/js:dev: 102     // @ts-expect-error -- Required for dynamic function calls
+@formbricks/js:dev:         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@formbricks/js:dev: 
+✓ 2 modules transformed.
+@formbricks/web:dev:  ✓ Compiled in 7.9s
+
+@formbricks/js:dev: [vite:dts] Start generate declaration files...
+dist/index.js  2.69 kB │ gzip: 0.97 kB │ map: 5.85 kB
+@formbricks/js:dev: [vite:dts] Start rollup declaration files...
+@formbricks/web:dev:  ✓ Ready in 28.2s
+@formbricks/web:dev:  ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+@formbricks/web:dev:  ⚠ See instructions if you need to configure Turbopack:
+@formbricks/web:dev:   https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+@formbricks/web:dev: 
+@formbricks/web:dev:  ○ Compiling / ...
+@formbricks/js:dev: Analysis will use the bundled TypeScript version 5.4.2
+✓ 9 modules transformed.
+
+@formbricks/api:dev: [vite:dts] Start generate declaration files...
+dist/index.js  7.31 kB │ gzip: 2.06 kB │ map: 20.94 kB
+@formbricks/api:dev: [vite:dts] Start rollup declaration files...
+@formbricks/web:dev: 
+@formbricks/web:dev: warn - Your `content` configuration includes a pattern which looks like it's accidentally matching all of `node_modules` and can cause serious performance issues.
+@formbricks/web:dev: warn - Pattern: `../../packages/ui/**/*.ts`
+@formbricks/web:dev: warn - See our documentation for recommendations:
+@formbricks/web:dev: warn - https://tailwindcss.com/docs/content-configuration#pattern-recommendations
+@formbricks/api:dev: Analysis will use the bundled TypeScript version 5.4.2
+@formbricks/js-core:dev: src/lib/api.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:45:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 45     // @ts-expect-error
+@formbricks/js-core:dev:        ~~~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:58:7 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 58       // @ts-expect-error
+@formbricks/js-core:dev:          ~~~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/attributes.ts:126:5 - error TS2578: Unused '@ts-expect-error' directive.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 126     // @ts-expect-error
+@formbricks/js-core:dev:         ~~~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: src/lib/widget.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: ../lib/responseQueue.ts:1:31 - error TS2307: Cannot find module '@formbricks/api' or its corresponding type declarations.
+@formbricks/js-core:dev: 
+@formbricks/js-core:dev: 1 import { FormbricksAPI } from ""@formbricks/api"";
+@formbricks/js-core:dev:                                 ~~~~~~~~~~~~~~~~~
+@formbricks/js-core:dev: 
+✓ 24 modules transformed.
+dist/index.cjs  1.35 kB │ gzip: 0.70 kB │ map: 5.93 kB
+@formbricks/js:dev: [vite:dts] Declaration files built in 97264ms.
+@formbricks/js:dev: 
+@formbricks/js:dev: built in 98894ms.
+
+@formbricks/js-core:dev: [vite:dts] Start generate declaration files...
+@formbricks/js-core:dev: Ensured directory exists: /workspace/apps/web/public/js
+@formbricks/js-core:dev: Copied 2 files to /workspace/apps/web/public/js (formbricks)
+dist/index.umd.cjs  29.85 kB │ gzip: 9.18 kB │ map: 124.81 kB
+@formbricks/js-core:dev: [vite:dts] Start rollup declaration files...
+@formbricks/js-core:dev: Analysis will use the bundled TypeScript version 5.4.2
+@formbricks/js-core:dev: Terminated
+@formbricks/js-core:dev:  ELIFECYCLE  Command failed with exit code 143.
+@formbricks/js-core:dev: ERROR: command finished with error: command (/workspace/packages/js-core) /usr/local/share/npm-global/bin/pnpm run dev exited (143)
+@formbricks/email:dev: 
+@formbricks/email:dev: shutting down dev server
+@formbricks/email:dev: 
+@formbricks/demo:dev: 
+@formbricks/web:dev: 
+transforming (6) src/components/general/Survey.tsx
+@formbricks/js-core#dev: command (/workspace/packages/js-core) /usr/local/share/npm-global/bin/pnpm run dev exited (143)
+
+ Tasks:    0 successful, 7 total
+Cached:    0 cached, 7 total
+  Time:    2m10.133s 
+Failed:    @formbricks/js-core#dev
+
+ ERROR  run failed: command  exited (143)
+ ELIFECYCLE  Command failed with exit code 143.
+``` 
+
+</p>
+</details> 
+
+### Steps to Reproduce
+
+Can follow this official doc https://formbricks.com/docs/developer-docs/contributing/codespaces
+
+OR
+
+Follow this steps
+1. Fork the project.
+2. In the forked project Create Codespace.
+3. Github Codespace should open and start setting up project.
+
+
+### Expected behavior
+
+Server should start after setup is completed.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+![image](https://github.com/user-attachments/assets/20c45f72-3843-4e63-824a-6d6c1747daf7)
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:any
+- Node:any
+- npm:any
+```
+",,
+2582761487,3541,[🕹️] Move Integrations in Formbricks Docs to Core Features,"### Issue Summary
+
+Integrations are currently part of the Developer Docs in the Formbricks Docs.
+
+<img width=""314"" alt=""Screenshot 2024-10-12 at 12 02 39"" src=""https://github.com/user-attachments/assets/3661fbf1-a1d8-4bc2-ad0e-4bde14f67af5"">
+
+
+### Expected behavior
+
+Setting up integrations is not a developer task so we should move them to `Core Features`.
+For this task just updating the `navigation.ts` file is sufficient.
+
+",,
+2578878641,3364,[FEATURE]  Add Dark Theme Toggle Option,"### What side quest or challenge are you solving?
+
+formbricks currently only supports a light theme, which can be straining on the eyes, especially in low-light environments. It would improve user experience by allowing users to switch to a dark theme, making it more comfortable for prolonged use and accommodating user preferences for different lighting conditions.
+
+### Points
+
+ 500
+
+### Description
+I would like to see a dark theme toggle option implemented in formbricks . A button or switch could be added to the user interface that allows users to switch between light and dark themes seamlessly. This could be stored in the user’s settings for persistence across sessions.
+As an alternative, I have considered using browser extensions or custom CSS to force a dark theme, but this isn't as user-friendly or integrated into the platform as a built-in toggle option.
+
+### Provide proof that you've completed the task
+
+This feature would make the tool more accessible to users who prefer dark mode for visual comfort or battery conservation on certain devices.  ",,
+2572668149,3327,[FEATURE] Do not eval inline the SDK as it may break CSPs,"### Is your feature request related to a problem? Please describe.
+
+We use CSP and do **not** allow `'unsafe-inline'` in our `script-src`. 
+
+The contents of the SDK are fetched and evaluated inline here: <https://github.com/formbricks/formbricks/blob/ed7662be5d4493851da5ea2c16aafc331c86c189/packages/js/src/shared/load-formbricks.ts#L22> 
+
+This will violate a CSP unless:
+1.  we allow `'unsafe-inline'` in `script-src`, which is not ideal for security
+2. we allow `'sha256-...'` i.e. whitelist the contents of the SDK,  but this changes very frequently and hard to keep up with.
+
+### Describe the solution you'd like
+
+Let the browser fetch the script. This way we can whitelist the domain `https://app.formbricks.com`
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
+2568444460,3304,[BUG] Gitpod build error while building @formbricks/api#build,"### Issue Summary
+
+This is an issue while running pnpm go in gitpod to build the project.
+
+This error is in the file **types.ts**
+
+![image](https://github.com/user-attachments/assets/7002f117-a520-40bd-8301-60cefd3af707)
+
+
+### Steps to Reproduce
+
+1. open formbricks repo in gitpod and it automatically starts to build
+2. the error will be visible in terminal
+
+
+### Expected behavior
+
+There must be no error and it should start the server on port 3000
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [x] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2563294789,3270,GitPod is not been able to spin up due to some error caused in files.,"### Issue Summary
+
+If we press the `open in GitPod` button and wait for some time to finish up the build process. Then we encounter errors in the middle and run will fail and exit. It is caused by the file `surveys/types.ts` and `surveys/validation.ts`. you can see in the screenshot.
+![err-gitpod](https://github.com/user-attachments/assets/865964f1-a50d-41aa-802d-51bcd909e03f)
+the 
+
+### Steps to Reproduce
+
+1. Click on `Open in GitPod`
+2. Wait for build to finish
+
+### Expected behavior
+
+To be able to run build successfully and be able to visit: [http://localhost:3000](url) 
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2525245979,3145,"[FEATURE] PDF download for Summary View, similar to SurveyMonkey","### Is your feature request related to a problem? Please describe.
+
+Not related to an issue, but one of the biggest ""mainstream"" survey platforms (SurveyMonkey) has this as a paid feature.
+
+### Describe the solution you'd like
+
+SurveyMonkey has a feature to export a PDF file with bar graphs in addition to the CSV/XLS exports of all the raw data.
+
+There's already a nice view and layout of the statistics in the Summary view of Formbricks, if I was able to export it as a PDF that would be awesome and an easier way to share those statistics without having to create new accounts or publishing the results publicly.
+
+Example of what SurveyMonkey's export looks like for a multipleChoice type:
+
+![image](https://github.com/user-attachments/assets/d71d402e-15b7-4b03-ad97-9a10e3c7c0e4)
+
+
+### Describe alternatives you've considered
+
+It could potentially be as easy as having a ""Print"" button somewhere on the Summary page that opens a minimal UI version in a new tab. Something that removes the side bar and the filter/share buttons. Then, most browsers could simply ""Print to PDF"" and nothing in Formbricks would need to actually generate a PDF. I think the current layout in the Summary page is already perfect for this kind of export.
+
+For now, I'm building a python daemon that collects data from the API and builds a similar PDF using a combination of pandas and pymupdf, then emails it to the execs once a month. I don't think I would be able to port it over to node since my abilities in JS are very limited.
+
+The daemon I built is sort of specific to my use-case, but I could potentially make it public with a few tweaks if anyone is interested. Right now it only supports `multipleChoiceSingle`, `multipleChoiceMulti`, and `matrix` type questions, but I could potentially add more support while I finish it up over the next week. I have it setup to run as an additional container in docker-compose alongside the rest of formbricks' containers.
+
+### Additional context
+
+_No response_",,
+2519626846,3128,[BUG] Display Creation Fails with invalid CUID 🚨 ,"### Issue Summary
+
+I'm currently investigating why the display count is broken for some surveys.
+I will take the survey `ign1eyhugb9xouy1986peg0m` as an example. The cuid of this survey has been generated by Formbricks but the validation within `ZDisplayCreateInput` fails.
+
+https://github.com/formbricks/formbricks/blob/c53b58c64f8b9fcefa9c31694913077e09a7b96b/packages/types/displays.ts#L15
+
+
+### Steps to Reproduce
+
+1. Send the following CURL request:
+```
+curl --request POST \
+  --url https://app.formbricks.com/api/v1/client/cm0xtgl0u000008jv560ed7qq/displays \
+  --data '{""surveyId"":""ign1eyhugb9xouy1986peg0m""}'
+```
+(Note that the environmentID `cm0xtgl0u000008jv560ed7qq` does not exist and I just generated it on https://www.getuniqueid.com/cuid)
+Request fails with the following error message although `ign1eyhugb9xouy1986peg0m` is the id of a survey in our instance:
+```
+{
+	""code"": ""bad_request"",
+	""message"": ""Fields are missing or incorrectly formatted"",
+	""details"": {
+		""surveyId"": ""Invalid cuid""
+	}
+}
+```
+
+2. The cuid validation works when testing it with a different cuid:
+```
+curl --request POST \
+  --url https://app.formbricks.com/api/v1/client/cm0xtgl0u000008jv560ed7qq/displays \
+  --data '{""surveyId"":""cm0xtgl0u000008jv560ed7qq""}'
+```
+This request will lead to an internal server error (but the request validates successfully)
+```
+{
+	""code"": ""internal_server_error"",
+	""message"": ""\nInvalid `prisma.display.create()` invocation:\n\n\nAn operation failed because it depends on one or more records that were required but not found. No 'Survey' record(s) (needed to inline the relation on 'Display' record(s)) was found for a nested connect on one-to-many relation 'DisplayToSurvey'."",
+	""details"": {}
+}
+```
+
+### Expected behavior
+
+When providing a valid environment ID and a valid survey ID the request validates.
+
+When providing an invalid environment ID or invalid survey ID the request does not validate.
+
+Currently you can create a Display for any survey (even with a bogus environment ID) and when providing a bogus survey ID it still tries to create the Display (which leads to an internal server error).
+
+### Other information
+
+I guess that `prisma` sometimes generates cuids that are marked as invalid by `zod`.
+
+**Please fix as soon as possible as this is a major bug for us.** ‼️ 
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.5.1
+```
+",,
+2516132325,3119,[BUG] Migration to v2.5 fails,"### Issue Summary
+
+I'm trying to run the migration script in order to upgrade to v2.5.1. It initially ran out of memory but after massively increasing the memory limits it's now failing with the following error message:
+
+```
+│ > @formbricks/database@0.1.0 data-migration:v2.5 /app/packages/database                                                                                                                                                        │
+│ > pnpm data-migration:remove-dismissed-value-inconsistency                                                                                                                                                                     │
+│                                                                                                                                                                                                                                │
+│                                                                                                                                                                                                                                │
+│ > @formbricks/database@0.1.0 data-migration:remove-dismissed-value-inconsistency /app/packages/database                                                                                                                        │
+│ > ts-node ./data-migrations/20240807120500_cta_consent_dismissed_inconsistency/data-migration.ts                                                                                                                               │
+│                                                                                                                                                                                                                                │
+│ Starting data migration...                                                                                                                                                                                                     │
+│ Updated 31 questions in  31 surveys                                                                                                                                                                                            │
+│ Data migration completed. Total time: 500.054s                                                                                                                                                                                 │
+│ An error occurred during migration: PrismaClientKnownRequestError: Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 180000 ms, h │
+│     at Cr.transaction (/app/node_modules/@prisma/client/runtime/library.js:110:12295)                                                                                                                                          │
+│     at async Proxy._transactionWithCallback (/app/node_modules/@prisma/client/runtime/library.js:130:8034)                                                                                                                     │
+│     at async runMigration (/app/packages/database/data-migrations/20240807120500_cta_consent_dismissed_inconsistency/data-migration.ts:10:3) {                                                                                 │
+│   code: 'P2028',                                                                                                                                                                                                               │
+│   clientVersion: '5.19.1',                                                                                                                                                                                                     │
+│   meta: {                                                                                                                                                                                                                      │
+│     error: 'Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 180000 ms, however 500055 ms passed since the start of the transaction. Consider increasin │
+│   }                                                                                                                                                                                                                            │
+│ }                                                                                                                                                                                                                              │
+│  ELIFECYCLE  Command failed with exit code 1.                                                                                                                                                                                  │
+```
+
+### Steps to Reproduce
+
+1. Try to run data migration on an instance where the data migration takes long
+
+
+### Expected behavior
+
+Data migration timeout long enough to complete successfully.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.5.1
+```
+",,
+2510182192,3109,[BUG] Upgrade to v2.4.3 from v2.2.2,"### Issue Summary
+
+Skipped migration in 2.3 as it didnt apply to us. Ran upgrade to 2.4.3 image and then migrations.
+Formbricks seems to be ok but threw this error during migration.
+
+### Steps to Reproduce
+
+```
+Status: Downloaded newer image for ghcr.io/formbricks/data-migrations:v2.4.0
+
+> @formbricks/database@0.1.0 data-migration:v2.4 /app/packages/database
+> pnpm data-migration:segments-cleanup && pnpm data-migration:multiple-endings && pnpm data-migration:simplified-email-verification
+
+
+> @formbricks/database@0.1.0 data-migration:segments-cleanup /app/packages/database
+> ts-node ./data-migrations/20240712123456_segments_cleanup/data-migration.ts
+
+starting migration
+Deleted 0 segments with no surveys
+Found 0 app surveys without a segment
+Migration completed
+
+> @formbricks/database@0.1.0 data-migration:multiple-endings /app/packages/database
+> ts-node ./data-migrations/20240801120500_thankYouCard_to_endings/data-migration.ts
+
+/app/node_modules/ts-node/src/index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+data-migrations/20240801120500_thankYouCard_to_endings/data-migration.ts(28,13): error TS2322: Type '{ id: string; redirectUrl: string | null; thankYouCard: unknown; }[]' is not assignable to type 'Survey[]'.
+  Type '{ id: string; redirectUrl: string | null; thankYouCard: unknown; }' is not assignable to type 'Survey'.
+    Types of property 'thankYouCard' are incompatible.
+      Type 'unknown' is not assignable to type '{ enabled: boolean; title: string; description: string; } | null'.
+
+    at createTSError (/app/node_modules/ts-node/src/index.ts:859:12)
+    at reportTSError (/app/node_modules/ts-node/src/index.ts:863:19)
+    at getOutput (/app/node_modules/ts-node/src/index.ts:1077:36)
+    at Object.compile (/app/node_modules/ts-node/src/index.ts:1433:41)
+    at Module.m._compile (/app/node_modules/ts-node/src/index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1416:10)
+    at Object.require.extensions.<computed> [as .ts] (/app/node_modules/ts-node/src/index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1208:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1024:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:174:12) {
+  diagnosticCodes: [ 2322 ]
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+
+```
+
+### Expected behavior
+
+Expected to get an output without errors.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2503229063,3086,[BUG] - hidden fields are not displayed in responses page (V2.5.0),"### Issue Summary
+
+I've just upgraded to `v2.5.0`
+
+hidden fields are not displayed correctly in the results of the new “responses” page. But they are present in the CSV/EXCEL export.
+
+### Steps to Reproduce
+
+add ""mail"" hidden field
+add ""?mail=test@test.fr"" in URL
+Complete form
+and go to response page
+
+### Expected behavior
+
+hidden fields must be show
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+![2024-09-03_17-53](https://github.com/user-attachments/assets/5473323b-3e8b-4ff0-889d-8a3faf339a7a)
+
+![2024-09-03_17-54](https://github.com/user-attachments/assets/81e80cdf-632a-4f55-b951-3a0e5a9eb3c8)
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+Docker version : v2.5.0
+```
+",,
+2500851657,3079,[BUG] NPS 0 answers are exported with empty string,"### Issue Summary
+
+<img width=""989"" alt=""image"" src=""https://github.com/user-attachments/assets/aaf1c9fa-82b3-4e40-8ad3-cd5eddd79f51"">
+
+
+### Steps to Reproduce
+
+1. Create NPS
+2. Submit 0 value
+3. Export
+
+### Expected behavior
+
+0 Should be stored and exported as 0.
+
+Pls also double check question type ranking.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2498737622,3074,[FEATURE] Add verification email to response data,"### Is your feature request related to a problem? Please describe.
+
+<img width=""621"" alt=""image"" src=""https://github.com/user-attachments/assets/b7fe25b1-f4a9-4c8b-b486-66fa97dd95d7"">
+
+
+
+### Describe the solution you'd like
+
+Add email of the Verify by Email functionality to the response data.
+
+Potential solution: Create a default hidden field ""verificationEmail"" and pipe the email from the verification form via the survey URL to the response object.
+
+Make sure to export it along with the rest of the response data.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
+2486386438,3049,[BUG] Display Update Fails,"### Issue Summary
+
+We're getting the following message in our logs:
+
+```
+| Unknown argument `response`. Did you mean `responseId`? Available options are marked with ?.                                                                                                                      
+│
+│     at An (/home/nextjs/node_modules/@prisma/client/runtime/library.js:114:7526)
+│     at _n.handleRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7392)
+│     at _n.handleAndLogRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7057)
+│     at _n.request (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:6741)
+│     at async l (/home/nextjs/node_modules/@prisma/client/runtime/library.js:130:9355)
+│     at async p (/home/nextjs/apps/web/.next/server/chunks/8215.js:1:16736)
+│     at async p (/home/nextjs/apps/web/.next/server/app/api/v1/client/[environmentId]/displays/[displayId]/route.js:1:1082)
+│     at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36258
+│     at async eR.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:26874)
+│     at async eR.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37512) {
+│   clientVersion: '5.18.0'
+│ }
+│ PrismaClientValidationError:
+│ Invalid `prisma.display.update()` invocation:
+│
+│ {
+│   where: {
+│     id: ""abc"" 
+│   },
+│   data: {
+│     response: {
+│     ~~~~~~~~
+│       connect: {
+│         id: ""xyz""  
+│       }
+│     },
+│ ?   id?: String | StringFieldUpdateOperationsInput,
+│ ?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+│ ?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+│ ?   responseId?: String | NullableStringFieldUpdateOperationsInput | Null,
+│ ?   status?: DisplayStatus | NullableEnumDisplayStatusFieldUpdateOperationsInput | Null,
+│ ?   survey?: SurveyUpdateOneRequiredWithoutDisplaysNestedInput,
+│ ?   person?: PersonUpdateOneWithoutDisplaysNestedInput
+│   },
+│   select: {
+│     id: true,
+│     createdAt: true,
+│     updatedAt: true,
+│     surveyId: true,
+│     responseId: true,
+│     personId: true,
+│     status: true
+│   }
+│ }                               
+```
+
+### Steps to Reproduce
+
+1. Try to update display
+
+
+### Expected behavior
+
+update display works properly
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.4.3
+```
+",,
+2482935813,3044,[BUG] ReferenceError: firstEnabledEnding is not defined,"### Issue Summary
+
+It seems like one of our surveys is somehow misconfigured and causes the following error on each survey sync:
+
+```
+ReferenceError: firstEnabledEnding is not defined
+    at o (/home/nextjs/apps/web/.next/server/chunks/8215.js:1:47212)
+    at u (/home/nextjs/apps/web/.next/server/chunks/8215.js:1:48037)
+    at /home/nextjs/apps/web/.next/server/app/api/v1/client/[environmentId]/website/sync/route.js:1:2912
+    at Array.map (<anonymous>)
+    at y (/home/nextjs/apps/web/.next/server/app/api/v1/client/[environmentId]/website/sync/route.js:1:2897)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36258
+    at async eR.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:26874)
+    at async eR.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37512)
+    at async doRender (/home/nextjs/node_modules/next/dist/server/base-server.js:1377:42)
+```
+
+I've run all migrations and restarted Redis.
+
+### Steps to Reproduce
+
+1. Error is thrown on every survey sync, unfortunately the error message is too unspecific which makes it hard to find the misconfigured survey
+
+
+### Expected behavior
+
+no error on survey sync :)
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.4.3
+```
+",,
+2477467746,3036,[BUG] unable to upload logos & backgrounds (on premise),"### Issue Summary
+
+Hello,
+We can't upload logos & backgrounds to our formbricks instance.
+We are on premise and are using the standard docker-compose.
+
+Here is the behavior in the front :
+
+![bug_upload_logo](https://github.com/user-attachments/assets/b9045254-1588-4c95-9180-f2a517bf058a)
+
+
+we get the following error logs in the formbricks container :
+
+
+```
+formbricks-1  |  ⨯ TypeError: fetch failed
+formbricks-1  |     at node:internal/deps/undici/undici:13178:13
+formbricks-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+formbricks-1  |     at async fetchExternalImage (/home/nextjs/node_modules/next/dist/server/image-optimizer.js:580:17)
+formbricks-1  |     at async NextNodeServer.imageOptimizer (/home/nextjs/node_modules/next/dist/server/next-server.js:650:48)
+formbricks-1  |     at async cacheEntry.imageResponseCache.get.incrementalCache (/home/nextjs/node_modules/next/dist/server/next-server.js:182:65)
+formbricks-1  |     at async /home/nextjs/node_modules/next/dist/server/response-cache/index.js:90:36
+formbricks-1  |     at async /home/nextjs/node_modules/next/dist/lib/batcher.js:45:32 {
+formbricks-1  |   [cause]: Error: unable to verify the first certificate
+formbricks-1  |       at TLSSocket.onConnectSecure (node:_tls_wrap:1674:34)
+formbricks-1  |       at TLSSocket.emit (node:events:519:28)
+formbricks-1  |       at TLSSocket._finishInit (node:_tls_wrap:1085:8)
+formbricks-1  |       at ssl.onhandshakedone (node:_tls_wrap:871:12)
+formbricks-1  |       at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+formbricks-1  |     code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
+formbricks-1  |   }
+formbricks-1  | }
+```
+
+
+### Steps to Reproduce
+
+Upload a picture
+
+### Expected behavior
+
+Pictures uploads
+
+### Other information
+
+We are on version 2.4.3 ( upgraded ) and have set the new following option:
+
+    # If set to 0, the server will accept connections without requiring authorization from the list of supplied CAs (default is 1).
+    SMTP_REJECT_UNAUTHORIZED_TLS: 0
+
+
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: rhle 9
+- Node: /
+- npm: /
+```
+",,
+2477250142,3035,[BUG] Unknown argument `response`. Did you mean `responseId`?,"### Issue Summary
+
+I use self-hosted Formbricks via Docker.
+There are a bunch of errors as users fill out the Link Survey (for each answer submitted). However, data is saved and I can see the responses. Additionally, email notifications are not being sent. I have set up the app's `SMTP_...` environment variables.
+
+### Steps to Reproduce
+
+1. Self-host with docker
+2. Create Link survey
+3. Open link and start filling it out
+
+
+### Expected behavior
+
+no errors, email notifications are being sent
+
+### Other information
+
+```
+PrismaClientValidationError: 
+Invalid `prisma.display.update()` invocation:
+{
+  where: {
+    id: ""cm03i124300027xrx3vwc2sd4""
+  },
+  data: {
+    response: {
+    ~~~~~~~~
+      connect: {
+        id: ""cm03i155t00037xrx2wq39sdk""
+      }
+    },
+?   id?: String | StringFieldUpdateOperationsInput,
+?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   responseId?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   status?: DisplayStatus | NullableEnumDisplayStatusFieldUpdateOperationsInput | Null,
+?   survey?: SurveyUpdateOneRequiredWithoutDisplaysNestedInput,
+?   person?: PersonUpdateOneWithoutDisplaysNestedInput
+  },
+  select: {
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    surveyId: true,
+    responseId: true,
+    personId: true,
+    status: true
+  }
+}
+Unknown argument `response`. Did you mean `responseId`? Available options are marked with ?.
+    at An (/home/nextjs/node_modules/@prisma/client/runtime/library.js:114:7526)
+    at _n.handleRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7392)
+    at _n.handleAndLogRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7057)
+    at _n.request (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:6741)
+    at async l (/home/nextjs/node_modules/@prisma/client/runtime/library.js:130:9355)
+    at async p (/home/nextjs/apps/web/.next/server/chunks/8215.js:1:16736)
+    at async p (/home/nextjs/apps/web/.next/server/app/api/v1/client/[environmentId]/displays/[displayId]/route.js:1:1082)
+    at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36258
+    at async eR.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:26874)
+    at async eR.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37512) {
+  clientVersion: '5.18.0'
+}
+Error sending event to pipeline: TypeError: fetch failed
+```
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Docker (macOS)
+- Node: v20.16.0
+- npm: 10.8.1
+```
+",,
+2475142278,3032,[BUG] Content Security Policy (CSP) Header Not Set,"
+
+### Issue Summary
+
+The department of health in Hong Kong reported the following issue:
+
+**Content Security Policy (CSP) Header Not Set**
+
+```
+Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page — covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.
+```
+
+Please fix the issue using these chatGPT suggestions:
+
+To address the issue of the Content Security Policy (CSP) header not being set, you need to configure your web server or application to include a CSP header in HTTP responses. This header helps protect your site from a variety of attacks, including Cross-Site Scripting (XSS) and data injection attacks.
+
+Here's how you can set the CSP header in a Next.js application and at the proxy level using Traefik.
+
+### Setting CSP in Next.js
+
+1. **Open or create** the `next.config.js` file at the root of your Next.js project.
+
+2. **Add the headers configuration** to set the `Content-Security-Policy` header. Here's an example:
+
+```javascript
+// next.config.js
+
+module.exports = {
+  async headers() {
+    return [
+      {
+        // Apply these headers to all routes in your application
+        source: ""/(.*)"",
+        headers: [
+          {
+            key: ""Content-Security-Policy"",
+            value: ""default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-src 'none'; object-src 'none';"",
+          },
+        ],
+      },
+    ];
+  },
+};
+```
+
+### Explanation of CSP Directives
+
+- **default-src 'self'**: Allows content only from the origin site.
+- **script-src 'self'**: Allows scripts only from the origin site.
+- **style-src 'self'**: Allows styles only from the origin site.
+- **img-src 'self' data:**: Allows images from the origin site and data URIs.
+- **font-src 'self'**: Allows fonts only from the origin site.
+- **frame-src 'none'**: Prevents embedding the site in iframes.
+- **object-src 'none'**: Disallows embedding objects like Flash or Java applets.
+
+### Summary
+
+1. **Determine the required CSP**: Identify the sources of content your application needs to load (scripts, styles, images, etc.).
+2. **Set the CSP Header**: Configure the CSP header in your Next.js application.
+3. **Test the CSP**: Use browser developer tools to verify that the CSP header is being applied and monitor for any violations.
+
+By properly setting the CSP header, you add an important layer of security to your web application, helping to prevent XSS and other injection attacks.
+
+
+### Steps to Reproduce
+
+1. (for example) Went to ...
+2. Clicked on...
+3. ...
+
+
+### Expected behavior
+
+CSP header should be present
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2474065207,3027,[BUG] Error creating new form via API,"### Issue Summary
+
+Error creating a Survey, using the API POST `/api/v1/management/surveys`.
+This endpoint was working correctly, the documentation allows for NULL segments.
+
+```shell
+formbricks_1           | Argument `segment` must not be null.
+formbricks_1           |     at An (/home/nextjs/node_modules/@prisma/client/runtime/library.js:114:7526)
+formbricks_1           |     at _n.handleRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7392)
+formbricks_1           |     at _n.handleAndLogRequestError (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:7057)
+formbricks_1           |     at _n.request (/home/nextjs/node_modules/@prisma/client/runtime/library.js:121:6741)
+formbricks_1           |     at async l (/home/nextjs/node_modules/@prisma/client/runtime/library.js:130:9355)
+formbricks_1           |     at async M (/home/nextjs/apps/web/.next/server/chunks/8215.js:1:42952)
+formbricks_1           |     at async m (/home/nextjs/apps/web/.next/server/app/api/v1/management/surveys/route.js:1:2156)
+formbricks_1           |     at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36258
+formbricks_1           |     at async eR.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:26874)
+formbricks_1           |     at async eR.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37512) {
+formbricks_1           |   clientVersion: '5.18.0'
+formbricks_1           | }
+```
+
+### Steps to Reproduce
+
+sent a `POST` request to `/v1/management/surveys` with the data bellow.
+[request.txt](https://github.com/user-attachments/files/16664586/request.txt)
+
+
+### Expected behavior
+
+a new survey would be created.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [x] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+Docker. Formbricks version: 2.4.3
+```
+",,
+2462330652,3005,[BUG] Docker image doesn't build on Apple M-chips,"### Issue Summary
+
+After cloning the repo and running `docker compose up`, it fails to build (MacOs Sonoma 14.4.1 macbook m3):
+
+
+```
+$docker compose up
+
+[+] Building 13.3s (14/27)                                                                                                                              docker:desktop-linux
+ => [formbricks internal] load build definition from Dockerfile                                                                                                         0.0s
+ => => transferring dockerfile: 3.13kB                                                                                                                                  0.0s
+ => [formbricks internal] load metadata for docker.io/library/node:20-alpine                                                                                            1.2s
+ => [formbricks internal] load .dockerignore                                                                                                                            0.0s
+ => => transferring context: 412B                                                                                                                                       0.0s
+ => [formbricks internal] load build context                                                                                                                            2.9s
+ => => transferring context: 212.53MB                                                                                                                                   2.9s
+ => [formbricks base 1/1] FROM docker.io/library/node:20-alpine@sha256:eb8101caae9ac02229bd64c024919fe3d4504ff7f329da79ca60a04db08cef52                                 0.0s
+ => CACHED [formbricks installer 1/8] RUN corepack enable                                                                                                               0.0s
+ => CACHED [formbricks runner  2/15] RUN apk add --no-cache curl     && apk add --no-cache supercronic     && adduser --system --uid 1001 nextjs                        0.0s
+ => CACHED [formbricks runner  3/15] WORKDIR /home/nextjs                                                                                                               0.0s
+ => CACHED [formbricks installer 2/8] RUN apk update && apk add --no-cache g++ cmake make gcc python3 openssl-dev jq                                                    0.0s
+ => CACHED [formbricks installer 3/8] WORKDIR /app                                                                                                                      0.0s
+ => [formbricks installer 4/8] COPY . .                                                                                                                                 5.5s
+ => [formbricks installer 5/8] RUN touch apps/web/.env                                                                                                                  0.1s
+ => [formbricks installer 6/8] RUN pnpm install                                                                                                                         2.0s
+ => ERROR [formbricks installer 7/8] RUN pnpm build --filter=@formbricks/web...                                                                                         1.4s
+------
+ > [formbricks installer 7/8] RUN pnpm build --filter=@formbricks/web...:
+0.316
+0.316 > formbricks@0.0.0 build /app
+0.316 > turbo run build ""--filter=@formbricks/web...""
+0.316
+0.344
+0.344 Attention:
+0.344 Turborepo now collects completely anonymous telemetry regarding usage.
+0.344 This information is used to shape the Turborepo roadmap and prioritize features.
+0.344 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+0.344 https://turbo.build/repo/docs/telemetry
+0.344
+0.344 turbo 2.0.11
+0.344
+0.424 • Packages in scope: @formbricks/api, @formbricks/config-tailwind, @formbricks/config-typescript, @formbricks/database, @formbricks/ee, @formbricks/email, @formbricks/eslint-config, @formbricks/js, @formbricks/js-core, @formbricks/lib, @formbricks/surveys, @formbricks/types, @formbricks/ui, @formbricks/web
+0.424 • Running build in 14 packages
+0.424 • Remote caching disabled
+0.592 @formbricks/api:build: cache miss, executing 3614b64e7a078fda
+0.594 @formbricks/database:build: cache miss, executing 17b4fa289e77478e
+0.788 @formbricks/api:build:
+0.788 @formbricks/api:build: > @formbricks/api@1.8.0 build /app/packages/api
+0.788 @formbricks/api:build: > tsc && vite build
+0.788 @formbricks/api:build:
+0.792 @formbricks/database:build:
+0.792 @formbricks/database:build: > @formbricks/database@0.1.0 build /app/packages/database
+0.792 @formbricks/database:build: > pnpm generate
+0.792 @formbricks/database:build:
+1.024 @formbricks/database:build:
+1.024 @formbricks/database:build: > @formbricks/database@0.1.0 generate /app/packages/database
+1.024 @formbricks/database:build: > prisma generate
+1.024 @formbricks/database:build:
+1.025 @formbricks/database:build: sh: prisma: not found
+1.027 @formbricks/database:build:  ELIFECYCLE  Command failed.
+1.038 @formbricks/database:build:  ELIFECYCLE  Command failed with exit code 1.
+1.048 @formbricks/database:build: ERROR: command finished with error: command (/app/packages/database) /usr/local/bin/pnpm run build exited (1)
+1.057 @formbricks/database#build: command (/app/packages/database) /usr/local/bin/pnpm run build exited (1)
+1.058
+1.058  Tasks:    0 successful, 2 total
+1.058 Cached:    0 cached, 2 total
+1.058   Time:    711ms
+1.058 Failed:    @formbricks/database#build
+1.058
+1.061  ERROR  run failed: command  exited (1)
+1.376  ELIFECYCLE  Command failed with exit code 1.
+------
+failed to solve: process ""/bin/sh -c pnpm build --filter=@formbricks/web..."" did not complete successfully: exit code: 1```
+
+### Steps to Reproduce
+
+1. Clone repo
+2. Run `docker compose up`
+
+
+### Expected behavior
+
+Should build
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: MacOs Sonoma 14.4.1
+- Node: v20.16.0
+- npm: 10.8.1
+```
+",,
+2455827596,2984,"[BUG] error occurred during migration UPGRADE_TO_VERSION=""v2.4"" ","### Issue Summary
+
+Hello,
+I got an error during the data-migration step.
+```
+starting migration
+Deleted 0 segments with no surveys
+An error occurred during migration: PrismaClientKnownRequestError:
+Invalid `tx.survey.findMany()` invocation in
+/app/packages/database/data-migrations/20240712123456_segments_cleanup/data-migration.ts:30:56
+
+  27
+  28 console.log(`Deleted ${segmentsWithNoSurveys.length.toString()} segments with no surveys`);
+  29
+→ 30 const appSurveysWithoutSegment = await tx.survey.findMany(
+The column `Survey.endings` does not exist in the current database.
+    at _n.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7749)
+    at _n.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7057)
+    at _n.request (/app/node_modules/@prisma/client/runtime/library.js:121:6741)
+    at async l (/app/node_modules/@prisma/client/runtime/library.js:130:9355)
+    at async prisma.$transaction.timeout (/app/packages/database/data-migrations/20240712123456_segments_cleanup/data-migration.ts:30:40)
+    at async Proxy._transactionWithCallback (/app/node_modules/@prisma/client/runtime/library.js:130:7722)
+    at async runMigration (/app/packages/database/data-migrations/20240712123456_segments_cleanup/data-migration.ts:7:3) {
+  code: 'P2022',
+  clientVersion: '5.18.0',
+  meta: { modelName: 'Survey', column: 'Survey.endings' }
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+The app is not starting anymore.
+Getting logs like : 
+```
+formbricks-1  | > @formbricks/database@0.1.0 db:migrate:deploy
+formbricks-1  | > env DATABASE_URL=""${MIGRATE_DATABASE_URL:-$DATABASE_URL}"" prisma migrate deploy
+formbricks-1  |
+formbricks-1  | Error: Can't write to /usr/local/lib/node_modules/prisma/node_modules/@prisma/engines please make sure you install ""prisma"" with the right permissions.
+formbricks-1  | npm error Lifecycle script `db:migrate:deploy` failed with error:
+formbricks-1  | npm error code 1
+formbricks-1  | npm error path /home/nextjs/packages/database
+formbricks-1  | npm error workspace @formbricks/database@0.1.0
+formbricks-1  | npm error location /home/nextjs/packages/database
+formbricks-1  | npm error command failed
+formbricks-1  | npm error command sh -c env DATABASE_URL=""${MIGRATE_DATABASE_URL:-$DATABASE_URL}"" prisma migrate deploy
+```
+
+
+### Steps to Reproduce
+
+I upgraded from (working) 2.3.2 to 2.4.1 and applied the data migration step 2.4.
+( I believe I also previously upgraded from verison 2.3.1 coming from  2.1.1. and also did a data migration upgrade with no problem. I might have jumped over data-mig major version 2.2. But I figured the data migration would handle that .. )
+
+### Expected behavior
+
+no mig error.
+
+### Other information
+
+Here is the full error log :
+[2.4.1_migration_log.txt](https://github.com/user-attachments/files/16548740/2.4.1_migration_log.txt)
+
+Also I extracted the ""_prisma_migrations"" table :
+[prisma_migrations_table.txt](https://github.com/user-attachments/files/16561118/prisma_migrations_table.txt)
+
+
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: rhel 9, docker
+- Node: /
+- npm: /
+```
+",,
+2444219491,2951,[FEATURE] Add Modal component story for Storybook,"### Is your feature request related to a problem? Please describe.
+
+### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/Modal` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+Make sure to follow best practices for storybook.
+
+As an example, take a look at the Button component in `packages/ui/Button` where we already implemented a `stories.ts` file.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2411078780,2898,[BUG] project build error with node package @formbricks/js version 2.1.1,"### Issue Summary
+
+Upgraded the formbricks node package in my angular 16 project.
+Now getting a number of errors on run build.
+
+### Steps to Reproduce
+
+Upgrade the package from version 2.0.1 (wich is working alright) to the new 2.1.1.
+
+### Expected behavior
+
+no error
+
+### Other information
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:123:30 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+123 declare const ZActionInput = z.object({
+                                 ~~~~~~~~~~
+124     environmentId: z.string().cuid(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+126     name: z.string(),
+    ~~~~~~~~~~~~~~~~~~~~~
+127 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:129:39 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+129 declare const ZAttributeUpdateInput = z.object({
+                                          ~~~~~~~~~~
+130     environmentId: z.string().cuid2(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+132     attributes: z.record(z.union([z.string(), z.number()])),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+133 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:135:37 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+135 declare const ZDisplayCreateInput = z.object({
+                                        ~~~~~~~~~~
+136     environmentId: z.string().cuid(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+139     responseId: z.string().cuid().optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+140 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:142:37 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+142 declare const ZDisplayUpdateInput = z.object({
+                                        ~~~~~~~~~~
+143     environmentId: z.string().cuid(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+145     responseId: z.string().cuid().optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+146 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:148:35 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+148 declare const ZJsAppConfigInput = z.object({
+                                      ~~~~~~~~~~
+149     environmentId: z.string().cuid(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+153     attributes: z.record(z.string()).optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+154 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:156:36 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+156 declare const ZJsTrackProperties = z.object({
+                                       ~~~~~~~~~~
+157     hiddenFields: ZResponseHiddenFieldValue.optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+158 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:157:19 - error TS2304: Cannot find name 'ZResponseHiddenFieldValue'.
+
+157     hiddenFields: ZResponseHiddenFieldValue.optional(),
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:160:32 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+160 declare const ZResponseInput = z.object({
+                                   ~~~~~~~~~~
+161     createdAt: z.coerce.date().optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+185     .optional(),
+    ~~~~~~~~~~~~~~~~
+186 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:169:11 - error TS2304: Cannot find name 'ZResponseData'.
+
+169     data: ZResponseData,
+              ~~~~~~~~~~~~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:170:10 - error TS2552: Cannot find name 'ZResponseTtc'. Did you mean 'Response'?
+
+170     ttc: ZResponseTtc.optional(),
+             ~~~~~~~~~~~~
+
+  node_modules/typescript/lib/lib.dom.d.ts:18748:13
+    18748 declare var Response: {
+                      ~~~~~~~~
+    'Response' is declared here.
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:188:38 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+188 declare const ZResponseUpdateInput = z.object({
+                                         ~~~~~~~~~~
+189     finished: z.boolean(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+192     language: z.string().optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+193 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:190:11 - error TS2304: Cannot find name 'ZResponseData'.
+
+190     data: ZResponseData,
+              ~~~~~~~~~~~~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:191:10 - error TS2552: Cannot find name 'ZResponseTtc'. Did you mean 'Response'?
+
+191     ttc: ZResponseTtc.optional(),
+             ~~~~~~~~~~~~
+
+  node_modules/typescript/lib/lib.dom.d.ts:18748:13
+    18748 declare var Response: {
+                      ~~~~~~~~
+    'Response' is declared here.
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:195:35 - error TS1254: A 'const' initializer in an ambient context must be a string or numeric literal or literal enum reference.
+
+195 declare const ZUploadFileConfig = z.object({
+                                      ~~~~~~~~~~
+196     allowedFileExtensions: z.array(z.string()).optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+197     surveyId: z.string().optional(),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+198 });
+    ~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:205:38 - error TS2304: Cannot find name 'TFormbricksWebsite'.
+
+205         formbricks: TFormbricksApp | TFormbricksWebsite;
+                                         ~~~~~~~~~~~~~~~~~~
+
+
+Error: node_modules/@formbricks/js/dist/app.d.ts:212:38 - error TS2304: Cannot find name 'TFormbricksWebsite'.
+
+212         formbricks: TFormbricksApp | TFormbricksWebsite;
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: windows
+- Node: 20.12.2
+- npm: 10.5.0
+```
+",,
+2410612549,2896,[FEATURE] Add PageHeader component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/PageHeader` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button`.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410610172,2895,[FEATURE] Add LoadingSpinner component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/LoadingSpinner` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button`.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410607765,2894,[FEATURE] Add Label component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/Label` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button`.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410605684,2893,[FEATURE] Add Input component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/Input` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button`.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410601469,2892,[FEATURE] Add ColorPicker component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/ColorPicker` component to Storybook by adding a `stories.ts' file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button'.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410597633,2891,[FEATURE] Add Card component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/Card' component to Storybook by adding a `stories.ts' file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button'.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2410593544,2890,[FEATURE] Add Badge component to Storybook,"### Is your feature request related to a problem? Please describe.
+
+We are moving towards a unified design system in Formbricks to make the look and feel within Formbricks more consistent, eliminate duplicate component code, and make it easier for us to design new features.
+Our goal is to have all of our UI components in Storybook so that we have a good overview of them all in one place.
+
+### Describe the solution you'd like
+
+To get one step closer to this goal, please add the `packages/ui/Badge` component to Storybook by adding a `stories.ts` file to the component folder that shows the different variants and different argument combinations that this component can have.
+
+As an example, take a look at the Button component in `packages/ui/Button`.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+You can run storybook by running `pnpm storybook` in the Formbricks monorepo.",,
+2400616381,2870,Add an option for transparent background to the survey editor,"### Is your feature request related to a problem? Please describe.
+
+When embedding a survey into my website, I'd like the option of not having a background so I can use my own styling.
+
+### Describe the solution you'd like
+
+A `transparent` option added to the `SURVEY_BG_COLORS` array in `constants.ts`.
+
+I am happy to open a PR for this if this solution is acceptable.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
+2385848185,2838,[BUG] Growing __Secure-next-auth.session-token cookie,"### Issue Summary
+
+It seems like you are storing way too much information in the session token.
+For me the size is now 9.4kB (chunked into 3 separate cookies) causing issues with WAF.
+
+### Steps to Reproduce
+
+1. use Formbricks as a power user
+2. session-token grows over time
+
+### Expected behavior
+
+Only store necessary data in the session cookie and keep it to a bare minimum.
+I'm not 100% sure if the notificationSettings are the issue but they should definitely not be encoded in the session token.
+
+https://github.com/formbricks/formbricks/blob/c32a358f43b80a41db49e9ffc1ef2f1a26bff49c/packages/types/user.ts#L39
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+v2.3.0
+```
+",,
+2364183937,2789,[BUG] [URGENT] - I can't login to my account (Organisation billing period is not set),"### Issue Summary
+
+Since i've migrate to 2.2.1 :
+
+
+```
+Error: Organization billing period start is not set
+    at E.revalidate (/home/nextjs/apps/web/.next/server/chunks/8763.js:1:3117)
+    at async o (/home/nextjs/apps/web/.next/server/chunks/3751.js:1:389)
+    at async /home/nextjs/apps/web/.next/server/chunks/1334.js:1:5470
+    at async /home/nextjs/apps/web/.next/server/chunks/3751.js:1:479
+    at async Promise.all (index 1)
+    at async I (/home/nextjs/apps/web/.next/server/chunks/2693.js:1:33552) {
+  digest: '602769226'
+```
+I can't connect to my account (free account with self-hosted instance)
+
+
+### Steps to Reproduce
+
+just try to login my app
+
+### Expected behavior
+
+can login
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+Docker Formbrick Version : 2.2.1
+```
+",,
+2350857490,2766,[BUG] - Unable to change or delete Avatar,"### Issue Summary
+
+
+
+I make all migration and upload image in form is working
+
+LOG :
+
+```bash
+No pending migrations to apply.
+npm notice
+npm notice New minor version of npm available! 10.7.0 -> 10.8.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v10.8.1
+npm notice To update run: npm install -g npm@10.8.1
+npm notice
+  ▲ Next.js 15.0.0-rc.0
+  - Local:        http://localhost:3000
+  - Network:      http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 180ms
+
+
+Error: Deletion failed: Deletion failed
+    at U (/home/nextjs/apps/web/.next/server/app/(app)/environments/[environmentId]/settings/(account)/profile/page.js:11:13636)
+    at async /home/nextjs/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:128:1202
+    at async r$ (/home/nextjs/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:127:8130)
+    at async nn (/home/nextjs/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:129:1140)
+    at async doRender (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:1490:34)
+    at async responseGenerator (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:1652:28)
+    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:1665:28)
+    at async NextNodeServer.renderPageComponent (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:1978:24)
+    at async NextNodeServer.renderToResponseImpl (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:2016:32)
+    at async NextNodeServer.pipeImpl (/home/nextjs/apps/web/node_modules/next/dist/server/base-server.js:908:25) {
+  digest: '1690535866'
+}
+```
+
+
+
+### Steps to Reproduce
+
+Just try to change or delete Avatar image
+
+### Expected behavior
+
+change or delete Avatar image with success
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+![2024-06-13_13-04](https://github.com/formbricks/formbricks/assets/48883970/eb9b4a48-4ee9-4e87-b155-ec7fd1a9c159)
+
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+",,
+2329252601,2717,[BUG] docker compose fail to build @formbricks/web#build,"### Issue Summary
+
+Docker compose failed to build.
+
+
+### Steps to Reproduce
+
+* git clone https://github.com/formbricks/formbricks.git
+* docker compose up
+
+### Expected behavior
+
+docker should fire up.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+```docker
+[+] Building 294.6s (25/38)                                                                                     docker:default
+ => [formbricks internal] load build definition from Dockerfile                                                           0.1s
+ => => transferring dockerfile: 2.98kB                                                                                    0.0s
+ => [formbricks internal] load metadata for docker.io/library/node:20-alpine                                              0.6s
+ => [formbricks auth] library/node:pull token for registry-1.docker.io                                                    0.0s
+ => [formbricks internal] load .dockerignore                                                                              0.1s
+ => => transferring context: 406B                                                                                         0.0s
+ => [formbricks internal] load build context                                                                              0.2s
+ => => transferring context: 190.03kB                                                                                     0.1s
+ => [formbricks base 1/1] FROM docker.io/library/node:20-alpine@sha256:928b24aaadbd47c1a7722c563b471195ce54788bf8230ce80  0.0s
+ => CACHED [formbricks runner  1/15] RUN corepack enable                                                                  0.0s
+ => CACHED [formbricks runner  2/15] RUN apk add --no-cache curl     && apk add --no-cache supercronic     && adduser --  0.0s
+ => CACHED [formbricks runner  3/15] WORKDIR /home/nextjs                                                                 0.0s
+ => CACHED [formbricks installer  2/12] RUN apk update && apk add --no-cache g++ cmake make gcc python3 openssl-dev jq    0.0s
+ => CACHED [formbricks installer  3/12] WORKDIR /app                                                                      0.0s
+ => CACHED [formbricks installer  4/12] COPY .gitignore .gitignore                                                        0.0s
+ => CACHED [formbricks builder 1/6] RUN apk add --no-cache libc6-compat                                                   0.0s
+ => CACHED [formbricks builder 2/6] RUN apk update                                                                        0.0s
+ => CACHED [formbricks builder 3/6] WORKDIR /app                                                                          0.0s
+ => CACHED [formbricks builder 4/6] RUN yarn global add turbo                                                             0.0s
+ => CACHED [formbricks builder 5/6] COPY . .                                                                              0.0s
+ => CACHED [formbricks builder 6/6] RUN turbo prune @formbricks/web --docker                                              0.0s
+ => CACHED [formbricks installer  5/12] COPY --from=builder /app/out/json/ .                                              0.0s
+ => CACHED [formbricks installer  6/12] COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml                      0.0s
+ => CACHED [formbricks installer  7/12] RUN pnpm install                                                                  0.0s
+ => CACHED [formbricks installer  8/12] COPY --from=builder /app/out/full/ .                                              0.0s
+ => CACHED [formbricks installer  9/12] RUN touch /app/apps/web/.env                                                      0.0s
+ => CACHED [formbricks installer 10/12] RUN pnpm post-install --filter=web...                                             0.0s
+ => ERROR [formbricks installer 11/12] RUN pnpm turbo run build --filter=web...                                         293.2s
+------
+ > [formbricks installer 11/12] RUN pnpm turbo run build --filter=web...:
+1.397 • Packages in scope: @formbricks/api, @formbricks/database, @formbricks/ee, @formbricks/email, @formbricks/js, @formbricks/js-core, @formbricks/lib, @formbricks/surveys, @formbricks/tailwind-config, @formbricks/tsconfig, @formbricks/types, @formbricks/ui, @formbricks/web, eslint-config-formbricks
+1.397 • Running build in 14 packages
+1.397 • Remote caching disabled
+1.567 @formbricks/database:post-install: cache bypass, force executing edeeda9411a7194b
+1.587 @formbricks/surveys:build: cache miss, executing d3dc1914baebdf61
+1.589 @formbricks/api:build: cache miss, executing 2f4a56adea37f8ad
+2.130 @formbricks/database:post-install:
+2.130 @formbricks/database:post-install: > @formbricks/database@0.1.0 post-install /app/packages/database
+2.130 @formbricks/database:post-install: > pnpm generate
+2.130 @formbricks/database:post-install:
+2.147 @formbricks/surveys:build:
+2.147 @formbricks/surveys:build: > @formbricks/surveys@1.0.0 build /app/packages/surveys
+2.147 @formbricks/surveys:build: > tsc && vite build
+2.147 @formbricks/surveys:build:
+2.150 @formbricks/api:build:
+2.150 @formbricks/api:build: > @formbricks/api@1.7.0 build /app/packages/api
+2.150 @formbricks/api:build: > tsc && vite build
+2.150 @formbricks/api:build:
+2.847 @formbricks/database:post-install:
+2.847 @formbricks/database:post-install: > @formbricks/database@0.1.0 generate /app/packages/database
+2.847 @formbricks/database:post-install: > prisma generate
+2.847 @formbricks/database:post-install:
+3.934 @formbricks/database:post-install: Prisma schema loaded from schema.prisma
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: ✔ Generated Prisma Client (v5.14.0) to ./../../node_modules/@prisma/client in 687ms
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: ✔ Generated Zod Schemas (0.5.4) to ./zod in 920ms
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: ✔ Generated Prisma Json Types Generator (3.0.4) to ./ in 3.03s
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+10.21 @formbricks/database:post-install: ```
+10.21 @formbricks/database:post-install: import { PrismaClient } from '@prisma/client'
+10.21 @formbricks/database:post-install: const prisma = new PrismaClient()
+10.21 @formbricks/database:post-install: ```
+10.21 @formbricks/database:post-install: or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+10.21 @formbricks/database:post-install: ```
+10.21 @formbricks/database:post-install: import { PrismaClient } from '@prisma/client/edge'
+10.21 @formbricks/database:post-install: const prisma = new PrismaClient()
+10.21 @formbricks/database:post-install: ```
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+10.21 @formbricks/database:post-install:
+10.21 @formbricks/database:post-install: ┌─────────────────────────────────────────────────────────────┐
+10.21 @formbricks/database:post-install: │  Deploying your app to serverless or edge functions?        │
+10.21 @formbricks/database:post-install: │  Try Prisma Accelerate for connection pooling and caching.  │
+10.21 @formbricks/database:post-install: │  https://pris.ly/cli/--accelerate                           │
+10.21 @formbricks/database:post-install: └─────────────────────────────────────────────────────────────┘
+10.21 @formbricks/database:post-install:
+10.77 @formbricks/api:build: vite v5.2.11 building for production...
+16.02 @formbricks/surveys:build: vite v5.2.11 building for production...
+18.08 @formbricks/api:build: transforming...
+18.19 @formbricks/api:build: ✓ 10 modules transformed.
+18.22 @formbricks/api:build: rendering chunks...
+18.24 @formbricks/api:build:
+18.24 @formbricks/api:build: [vite:dts] Start generate declaration files...
+18.29 @formbricks/api:build: computing gzip size...
+18.31 @formbricks/api:build: dist/index.js  6.02 kB │ gzip: 1.65 kB │ map: 19.45 kB
+18.32 @formbricks/api:build: [vite:dts] Start rollup declaration files...
+20.05 @formbricks/api:build: Analysis will use the bundled TypeScript version 5.4.2
+27.51 @formbricks/api:build: [vite:dts] Declaration files built in 16540ms.
+27.51 @formbricks/api:build:
+27.74 @formbricks/api:build: dist/index.umd.cjs  3.64 kB │ gzip: 1.42 kB │ map: 19.69 kB
+27.74 @formbricks/api:build: ✓ built in 16.94s
+27.88 @formbricks/js-core:build: cache miss, executing 9dbec681b3b4918d
+28.03 @formbricks/surveys:build: transforming...
+28.46 @formbricks/js-core:build:
+28.46 @formbricks/js-core:build: > @formbricks/js-core@1.0.0 build /app/packages/js-core
+28.46 @formbricks/js-core:build: > pnpm build:app && pnpm build:website
+28.46 @formbricks/js-core:build:
+28.99 @formbricks/surveys:build: src/components/wrappers/StackedCardsContainer.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+29.06 @formbricks/js-core:build:
+29.06 @formbricks/js-core:build: > @formbricks/js-core@1.0.0 build:app /app/packages/js-core
+29.06 @formbricks/js-core:build: > tsc && vite build --config app.vite.config.ts
+29.06 @formbricks/js-core:build:
+31.74 @formbricks/surveys:build: ✓ 139 modules transformed.
+32.00 @formbricks/surveys:build: rendering chunks...
+32.01 @formbricks/surveys:build:
+32.01 @formbricks/surveys:build: [vite:dts] Start generate declaration files...
+32.08 @formbricks/surveys:build: computing gzip size...
+32.12 @formbricks/surveys:build: dist/style.css    1.99 kB │ gzip:   0.67 kB
+32.12 @formbricks/surveys:build: dist/index.js   568.92 kB │ gzip: 109.54 kB
+32.16 @formbricks/surveys:build: [vite:dts] Start rollup declaration files...
+34.02 @formbricks/surveys:build: Analysis will use the bundled TypeScript version 5.4.2
+37.73 @formbricks/js-core:build: vite v5.2.11 building for production...
+41.21 @formbricks/surveys:build: [vite:dts] Declaration files built in 21311ms.
+41.21 @formbricks/surveys:build:
+44.57 @formbricks/surveys:build: dist/style.css        1.99 kB │ gzip:  0.67 kB
+44.57 @formbricks/surveys:build: dist/index.umd.cjs  307.54 kB │ gzip: 81.68 kB
+44.57 @formbricks/surveys:build: ✓ built in 28.52s
+48.69 @formbricks/js-core:build: transforming...
+49.01 @formbricks/js-core:build: ✓ 30 modules transformed.
+49.60 @formbricks/js-core:build: rendering chunks...
+49.63 @formbricks/js-core:build:
+49.63 @formbricks/js-core:build: [vite:dts] Start generate declaration files...
+49.69 @formbricks/js-core:build: computing gzip size...
+49.70 @formbricks/js-core:build: dist/app.umd.cjs  26.00 kB │ gzip: 8.04 kB │ map: 113.74 kB
+49.72 @formbricks/js-core:build: [vite:dts] Start rollup declaration files...
+51.32 @formbricks/js-core:build: Analysis will use the bundled TypeScript version 5.4.2
+57.77 @formbricks/js-core:build: [vite:dts] Declaration files built in 19089ms.
+57.77 @formbricks/js-core:build:
+57.77 @formbricks/js-core:build: ✓ built in 20.00s
+58.51 @formbricks/js-core:build:
+58.51 @formbricks/js-core:build: > @formbricks/js-core@1.0.0 build:website /app/packages/js-core
+58.51 @formbricks/js-core:build: > tsc && vite build --config website.vite.config.ts
+58.51 @formbricks/js-core:build:
+65.60 @formbricks/js-core:build: vite v5.2.11 building for production...
+75.45 @formbricks/js-core:build: transforming...
+75.79 @formbricks/js-core:build: ✓ 29 modules transformed.
+76.36 @formbricks/js-core:build: rendering chunks...
+76.39 @formbricks/js-core:build:
+76.39 @formbricks/js-core:build: [vite:dts] Start generate declaration files...
+76.46 @formbricks/js-core:build: computing gzip size...
+76.47 @formbricks/js-core:build: dist/website.umd.cjs  23.35 kB │ gzip: 7.46 kB │ map: 108.49 kB
+76.48 @formbricks/js-core:build: [vite:dts] Start rollup declaration files...
+77.86 @formbricks/js-core:build: Analysis will use the bundled TypeScript version 5.4.2
+84.50 @formbricks/js-core:build: [vite:dts] Declaration files built in 17954ms.
+84.50 @formbricks/js-core:build:
+84.50 @formbricks/js-core:build: ✓ built in 18.86s
+84.66 @formbricks/js:build: cache miss, executing 3509df0cc11e824c
+85.20 @formbricks/js:build:
+85.20 @formbricks/js:build: > @formbricks/js@2.0.1 build /app/packages/js
+85.20 @formbricks/js:build: > tsc && vite build
+85.20 @formbricks/js:build:
+88.77 @formbricks/js:build: vite v5.2.11 building for production...
+91.42 @formbricks/js:build: transforming...
+91.48 @formbricks/js:build: ✓ 5 modules transformed.
+91.50 @formbricks/js:build: rendering chunks...
+91.51 @formbricks/js:build:
+91.51 @formbricks/js:build: [vite:dts] Start generate declaration files...
+91.56 @formbricks/js:build: computing gzip size...
+91.57 @formbricks/js:build: dist/app.js                      0.35 kB │ gzip: 0.23 kB │ map:  0.90 kB
+91.57 @formbricks/js:build: dist/website.js                  0.37 kB │ gzip: 0.23 kB │ map:  0.93 kB
+91.57 @formbricks/js:build: dist/loadFormbricks-BzaImH2L.js  3.94 kB │ gzip: 1.19 kB │ map: 12.31 kB
+91.58 @formbricks/js:build: [vite:dts] Start rollup declaration files...
+92.99 @formbricks/js:build: Analysis will use the bundled TypeScript version 5.4.2
+99.74 @formbricks/js:build: Analysis will use the bundled TypeScript version 5.4.2
+107.8 @formbricks/js:build: [vite:dts] Declaration files built in 18889ms.
+107.8 @formbricks/js:build:
+108.2 @formbricks/js:build: dist/app.cjs                      0.19 kB │ gzip: 0.17 kB │ map:  0.94 kB
+108.2 @formbricks/js:build: dist/website.cjs                  0.20 kB │ gzip: 0.18 kB │ map:  0.97 kB
+108.2 @formbricks/js:build: dist/loadFormbricks-CdxDGQiG.cjs  2.05 kB │ gzip: 0.89 kB │ map: 12.19 kB
+108.2 @formbricks/js:build: ✓ built in 19.41s
+108.4 @formbricks/web:build: cache miss, executing 410e57bcc4f9f05b
+109.3 @formbricks/web:build:
+109.3 @formbricks/web:build: > @formbricks/web@2.0.3 build /app/apps/web
+109.3 @formbricks/web:build: > next build
+109.3 @formbricks/web:build:
+111.8 @formbricks/web:build: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+111.8 @formbricks/web:build: This information is used to shape Next.js' roadmap and prioritize features.
+111.8 @formbricks/web:build: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+111.8 @formbricks/web:build: https://nextjs.org/telemetry
+111.8 @formbricks/web:build:
+111.9 @formbricks/web:build:   ▲ Next.js 15.0.0-rc.0
+111.9 @formbricks/web:build:   - Environments: .env
+111.9 @formbricks/web:build:
+112.2 @formbricks/web:build:    Creating an optimized production build ...
+202.9 @formbricks/web:build:  ⚠ Compiled with warnings
+202.9 @formbricks/web:build:
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/cjs/react.react-server.production.js
+202.9 @formbricks/web:build: A Node.js API is used (process.emit at line: 289) which is not supported in the Edge Runtime.
+202.9 @formbricks/web:build: Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+202.9 @formbricks/web:build:
+202.9 @formbricks/web:build: Import trace for requested module:
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/cjs/react.react-server.production.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/react.react-server.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/after/after.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/after/index.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/web/exports/index.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/api/server.js
+202.9 @formbricks/web:build:
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/cjs/react.react-server.production.js
+202.9 @formbricks/web:build: A Node.js API is used (process.emit at line: 291) which is not supported in the Edge Runtime.
+202.9 @formbricks/web:build: Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+202.9 @formbricks/web:build:
+202.9 @formbricks/web:build: Import trace for requested module:
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/cjs/react.react-server.production.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/compiled/react/react.react-server.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/after/after.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/after/index.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/server/web/exports/index.js
+202.9 @formbricks/web:build: ../../node_modules/next/dist/esm/api/server.js
+202.9 @formbricks/web:build:
+227.5 @formbricks/web:build:  ✓ Compiled successfully
+227.5 @formbricks/web:build:    Linting and checking validity of types ...
+283.4 @formbricks/web:build:    Collecting page data ...
+286.4 @formbricks/web:build:  ⚠ Using edge runtime on a page currently disables static generation for that page
+287.5 @formbricks/web:build:    Generating static pages (0/55) ...
+292.0 @formbricks/web:build: TypeError: Cannot read properties of null (reading 'useContext')
+292.0 @formbricks/web:build:     at exports.useContext (/app/apps/web/node_modules/react/cjs/react.production.js:489:33)
+292.0 @formbricks/web:build:     at h (/app/apps/web/.next/server/pages/_error.js:1:6021)
+292.0 @formbricks/web:build:     at renderWithHooks (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:3927:18)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4086:17)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4616:16)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderChildrenArray (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4773:7)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4630:9)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4127:7)
+292.0 @formbricks/web:build:
+292.0 @formbricks/web:build: Error occurred prerendering page ""/500"". Read more: https://nextjs.org/docs/messages/prerender-error
+292.0 @formbricks/web:build:
+292.0 @formbricks/web:build: TypeError: Cannot read properties of null (reading 'useContext')
+292.0 @formbricks/web:build:     at exports.useContext (/app/apps/web/node_modules/react/cjs/react.production.js:489:33)
+292.0 @formbricks/web:build:     at h (/app/apps/web/.next/server/pages/_error.js:1:6021)
+292.0 @formbricks/web:build:     at renderWithHooks (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:3927:18)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4086:17)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4616:16)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderChildrenArray (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4773:7)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4630:9)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4127:7)
+292.0 @formbricks/web:build: TypeError: Cannot read properties of null (reading 'useContext')
+292.0 @formbricks/web:build:     at exports.useContext (/app/apps/web/node_modules/react/cjs/react.production.js:489:33)
+292.0 @formbricks/web:build:     at h (/app/apps/web/.next/server/pages/_error.js:1:6021)
+292.0 @formbricks/web:build:     at renderWithHooks (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:3927:18)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4086:17)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4616:16)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderChildrenArray (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4773:7)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4630:9)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4127:7)
+292.0 @formbricks/web:build:
+292.0 @formbricks/web:build: Error occurred prerendering page ""/404"". Read more: https://nextjs.org/docs/messages/prerender-error
+292.0 @formbricks/web:build:
+292.0 @formbricks/web:build: TypeError: Cannot read properties of null (reading 'useContext')
+292.0 @formbricks/web:build:     at exports.useContext (/app/apps/web/node_modules/react/cjs/react.production.js:489:33)
+292.0 @formbricks/web:build:     at h (/app/apps/web/.next/server/pages/_error.js:1:6021)
+292.0 @formbricks/web:build:     at renderWithHooks (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:3927:18)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4086:17)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4616:16)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderChildrenArray (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4773:7)
+292.0 @formbricks/web:build:     at renderNodeDestructive (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4630:9)
+292.0 @formbricks/web:build:     at renderNode (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4841:14)
+292.0 @formbricks/web:build:     at renderElement (/app/node_modules/next/node_modules/react-dom/cjs/react-dom-server.browser.production.js:4127:7)
+292.1 @formbricks/web:build:
+292.1 @formbricks/web:build: > Build error occurred
+292.1 @formbricks/web:build: Error: Export encountered an error on /500, exiting due to prerenderEarlyExit: true being set
+292.1 @formbricks/web:build:     at /app/node_modules/next/dist/export/index.js:481:23
+292.1 @formbricks/web:build:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+292.1 @formbricks/web:build:     at async Promise.all (index 1)
+292.1 @formbricks/web:build:     at async exportAppImpl (/app/node_modules/next/dist/export/index.js:442:21)
+292.1 @formbricks/web:build:     at async /app/node_modules/next/dist/export/index.js:625:16
+292.1 @formbricks/web:build:     at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:157:20)
+292.1 @formbricks/web:build:     at async /app/node_modules/next/dist/build/index.js:1690:42
+292.1 @formbricks/web:build:     at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:157:20)
+292.1 @formbricks/web:build:     at async /app/node_modules/next/dist/build/index.js:1548:17
+292.1 @formbricks/web:build:     at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:157:20)
+292.1 @formbricks/web:build:     at async build (/app/node_modules/next/dist/build/index.js:372:9)
+292.2 @formbricks/web:build:  ELIFECYCLE  Command failed with exit code 1.
+292.2 @formbricks/web:build: ERROR: command finished with error: command (/app/apps/web) /usr/local/bin/pnpm run build exited (1)
+292.2 @formbricks/web#build: command (/app/apps/web) /usr/local/bin/pnpm run build exited (1)
+292.2
+292.2  Tasks:    5 successful, 6 total
+292.2 Cached:    0 cached, 6 total
+292.2   Time:    4m50.871s
+292.2 Failed:    @formbricks/web#build
+292.2
+292.2  ERROR  run failed: command  exited (1)
+------
+failed to solve: process ""/bin/sh -c pnpm turbo run build --filter=web..."" did not complete successfully: exit code: 1
+```
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: [Docker]
+- Node: [Docker]
+- npm:  [docker]
+```
+",,
+2310322099,2674,[BUG] empty device meta for Desktop,"### Issue Summary
+
+Desktop devices are not labelled here: https://github.com/formbricks/formbricks/blob/732b8b599fd632dcced0b65f28e79216f53082a1/apps/web/app/api/v1/client/%5BenvironmentId%5D/responses/route.ts#L85
+because UAParser does not label desktop devices: https://github.com/faisalman/ua-parser-js/issues/182
+
+### Steps to Reproduce
+
+1. check device type for response from a Desktop device
+
+
+### Expected behavior
+
+If `agent?.device.type` is undefined it should default to ""desktop""
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.0.2
+```
+",,
+2310258389,2671,[BUG] new survey sync returns all surveys,"### Issue Summary
+
+The new survey sync endpoint `/api/v1/client/<environment>/website/sync?version=2.0.2` returns all surveys (regardless of the survey status).
+The issue seems to be the filter/transformation logic: https://github.com/formbricks/formbricks/blob/main/apps/web/app/api/v1/client/%5BenvironmentId%5D/website/sync/route.ts#L100C11-L100C26
+
+### Steps to Reproduce
+
+1. Set survey as completed
+2. survey is still displayed in frontend
+
+
+### Expected behavior
+
+Only show running surveys
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- v2.0.2
+```
+",,
+2298136422,2630,[FEATURE] Copy surveys between products,"### Is your feature request related to a problem? Please describe.
+
+forms are stuck in a product
+
+### Describe the solution you'd like
+
+move between products or
+build export and import of surveys
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+This issue was requested by Formbricks users multiple times, e.g.
+```
+Message: I'd like to move a form from a product to another
+```",,
+2287267125,2597,[BUG] getting `failed to compile` error with `@formbricks/js@2.0.0`,"### Issue Summary
+
+npm package is not found after installing it. already throwing a type error that the module cannot be found inside node_modules.
+
+```
+Build Error
+Failed to compile
+
+./components/providers/formbricks-provider.tsx:5:1
+Module not found: Package path . is not exported from package /Users/mfts/dev/mfts/papermark-main/node_modules/@formbricks/js (see exports field in /Users/mfts/dev/mfts/papermark-main/node_modules/@formbricks/js/package.json)
+  3 | import { getSession } from ""next-auth/react"";
+  4 |
+> 5 | import formbricks from ""@formbricks/js"";
+    | ^
+  6 | import { useEffect } from ""react"";
+  7 | import { getFormbricksConfig } from ""@/lib/formbricks"";
+  8 | import { useRouter } from ""next/router"";
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+```
+
+### Steps to Reproduce
+
+1. `npm install @formbricks/js`
+2. add formbricks according to [pages router](https://formbricks.com/docs/app-surveys/framework-guides#next-js)
+3. `npm run dev`
+4. see error 
+
+
+### Expected behavior
+
+should compile and run
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [X] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: macOS
+- Node: v20.8.0
+- npm: v10.1.0
+```
+",,
+2245930381,2460,[FEATURE] Import and export surveys,"### Is your feature request related to a problem? Please describe.
+
+- for backup
+- to share surveys around
+- to enable a template marketplace kinda thing
+
+### Describe the solution you'd like
+
+Allow users to import and export surveys.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
+2244225492,2455,[FEATURE] Add metadata & hidden fields to Airtable integration,"### Is your feature request related to a problem? Please describe.
+
+The CSV export contains all the information: answers to questions + metadata (user agent, time etc..) + hidden fields. These last two are missing in the Airtable integration. This information is very useful so it would be great to have it in Airtable.
+
+### Describe the solution you'd like
+
+The Airtable integration should provide options for including the metadata and hidden fields, it would even be fine to always include it since you can easily hide unused columns in Airtable. That would save us from having to change anything to the UI and the integration config.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+I would love to contribute if you see this issue fit for a first contribution to this project.",,
+2242098577,2447,[BUG] Local storage always used even if S3 configuration is set,"### Issue Summary
+
+The local storage is always use even if a valid S3 configuration has been set.
+
+Local storage is used even when passing this configuration.
+    S3_ACCESS_KEY: 
+    S3_SECRET_KEY: 
+    S3_REGION: 
+    S3_BUCKET: 
+    
+Local storage is used even when passing this configuration.
+   AWS_ACCESS_KEY_ID:
+   AWS_SECRET_ACCESS_KEY:
+   AWS_REGION:
+   S3_BUCKET: 
+  
+It seems there's a flow in isS3Configured (packages/lib/constants.ts:106)
+
+### Steps to Reproduce
+
+1. Setup all S3 env variables
+2. Upload a logo in a survey
+3. The logo is not uploaded to S3 but stored locally only.
+
+### Expected behavior
+
+All pictures should be uploaded to S3 when all S3 env vars are set.
+
+### Other information
+
+POST https://formbricks-staging.pety.fr/api/v1/management/storage always returns {signedUrl: ""https://formbricks-staging.pety.fr/api/v1/management/storage/local""...} where it should in fact return the S3 presigned URL.
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2241779519,2444,[BUG] SignUp with Keycloak OCID fails due to `refresh_expires_in`,"### Issue Summary
+
+When using Keycloak as IDP, all sign-ups will fail. Keycloak includes the attribute `refresh_expires_in` in its response which cannot be handled by Formbricks.
+
+### Steps to Reproduce
+
+1. Setup Formbricks with Keycloak as IDP
+2. Sign-up as a new user
+
+
+### Expected behavior
+
+The user should be created and logged in.
+
+### Other information
+
+Log (tokens are redacted):
+
+```
+Invalid `prisma.account.create()` invocation:
+
+{
+  data: {
+    provider: ""openid"",
+    type: ""oauth"",
+    providerAccountId: ""provider_uuid"",
+    access_token: ""some_access_token"",
+    expires_at: 1713036572,
+    refresh_expires_in: 0,
+    ~~~~~~~~~~~~~~~~~~
+    token_type: ""Bearer"",
+    id_token: ""my_id_token"",
+    not-before-policy: 0,
+    session_state: ""some_state"",
+    scope: ""openid email profile"",
+    userId: ""some_id"",
+?   id?: String,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   refresh_token?: String | Null,
+?   ext_expires_in?: Int | Null,
+?   user?: UserCreateNestedOneWithoutAccountsInput
+  }
+}
+
+Unknown argument `refresh_expires_in`. Available options are marked with ?."" is an invalid header value.
+    at webidl.errors.exception (node:internal/deps/undici/undici:1581:14)
+    at webidl.errors.invalidArgument (node:internal/deps/undici/undici:1592:28)
+    at _Headers.set (node:internal/deps/undici/undici:2173:31)
+    at t.toResponse (/home/nextjs/apps/web/.next/server/chunks/7991.js:25:22019)
+    at a (/home/nextjs/apps/web/.next/server/chunks/7991.js:25:19894)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async e.length.t (/home/nextjs/apps/web/.next/server/chunks/7991.js:25:20998)
+    at async /home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:42484
+    at async eI.execute (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:32486)
+    at async eI.handle (/home/nextjs/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:43737)
+```
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Ubuntu with latest Docker image v 1.6.1
+```
+",,
+2231986806,2413,[FEATURE] Ability to send team invitations in bulk ,"### Is your feature request related to a problem? Please describe.
+
+No
+
+### Describe the solution you'd like
+
+It would be great if there were the ability to import csv file and send team invitations in bulk, along with the single invitations.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
+2230855893,2409,[BUG] oAuth lost on prod env but work on dev env,"### Issue Summary
+
+Faced the subject with no idea what happen.
+Tried revoke secret and regenerate on google API level, update in caprover ENV(KEY:VALUE), restart instance, delete and connect formbricks app from connected apps on google account side, delete cookies, etc... 
+Nothing helps to access Integration connection which was earlier connected to Google sheet! 
+
+Yet! It is shown as 🟢  Active Connection in Integration dashboard.
+
+### Steps to Reproduce
+
+1. installed caprover's docker image, enroll all the ENV settings (google oauth, s3 etc)
+2. used `Production` environment by selecting it in formbricks UI, created Teams and Products linked to them
+3. created 'link' type of survey in two Teams in two Surveys and connected both to google sheet through `Integration` tab, and everything worked well, tada populated to both google sheets
+4. within some time pass (a week may be) one of Surveys stopped populating data and render an Error Message while the connection remains Active as it is indicated
+
+![image](https://github.com/formbricks/formbricks/assets/991907/c7f464b5-de53-4445-8a97-7f6666c70ca7)
+
+if I press `Manage Sheets` this appears,
+and no matter which Product I am - pressing `Go to Dashboard` brings me to root 
+
+```
+Error loading resources
+This resource doesn't exist or you don't have the necessary rights to access it.
+```
+![image](https://github.com/formbricks/formbricks/assets/991907/0690aa73-3fd0-4fdd-9cb6-6c84890271cb)
+
+6. once I pressed and Error appears the server logs renders this
+```
+2024-04-07T20:15:22.310232649Z a [Error]: invalid_grant
+2024-04-07T20:15:22.310299765Z at P._request (/home/nextjs/apps/web/.next/server/chunks/2851.js:1:27384)
+2024-04-07T20:15:22.310309613Z at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2024-04-07T20:15:22.310314663Z at async m.refreshTokenNoCache (/home/nextjs/apps/web/.next/server/chunks/2851.js:10:44791)
+2024-04-07T20:15:22.310321606Z at async m.getRequestMetadataAsync (/home/nextjs/apps/web/.next/server/chunks/2851.js:10:47220)
+2024-04-07T20:15:22.310326035Z at async m.requestAsync (/home/nextjs/apps/web/.next/server/chunks/2851.js:10:48314)
+2024-04-07T20:15:22.310331154Z at async f (/home/nextjs/apps/web/.next/server/app/(app)/environments/[environmentId]/integrations/google-sheets/page.js:20:55902)
+2024-04-07T20:15:22.310352504Z at async g (/home/nextjs/apps/web/.next/server/app/(app)/environments/[environmentId]/integrations/google-sheets/page.js:20:56182)
+2024-04-07T20:15:22.310357093Z at async g (/home/nextjs/apps/web/.next/server/app/(app)/environments/[environmentId]/integrations/google-sheets/page.js:1:26714) {
+2024-04-07T20:15:22.310361511Z config: {
+2024-04-07T20:15:22.310365078Z method: 'POST',
+2024-04-07T20:15:22.310368664Z url: 'https://oauth2.googleapis.com/token',
+2024-04-07T20:15:22.310372662Z data: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+2024-04-07T20:15:22.310377020Z headers: {
+2024-04-07T20:15:22.310380627Z 'Content-Type': 'application/x-www-form-urlencoded',
+2024-04-07T20:15:22.310384354Z 'User-Agent': 'google-api-nodejs-client/9.4.1',
+2024-04-07T20:15:22.310387911Z 'x-goog-api-client': 'gl-node/20.11.1'
+2024-04-07T20:15:22.310391437Z },
+2024-04-07T20:15:22.310394893Z paramsSerializer: [Function: paramsSerializer],
+2024-04-07T20:15:22.310398520Z body: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+2024-04-07T20:15:22.310402488Z validateStatus: [Function: validateStatus],
+2024-04-07T20:15:22.310406065Z responseType: 'unknown',
+2024-04-07T20:15:22.310410493Z errorRedactor: [Function: e]
+2024-04-07T20:15:22.310414009Z },
+2024-04-07T20:15:22.310417476Z response: {
+2024-04-07T20:15:22.310420962Z config: {
+2024-04-07T20:15:22.310424439Z method: 'POST',
+2024-04-07T20:15:22.310427946Z url: 'https://oauth2.googleapis.com/token',
+2024-04-07T20:15:22.310431522Z data: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+2024-04-07T20:15:22.310435300Z headers: [Object],
+2024-04-07T20:15:22.310438826Z paramsSerializer: [Function: paramsSerializer],
+2024-04-07T20:15:22.310442373Z body: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+2024-04-07T20:15:22.310446060Z validateStatus: [Function: validateStatus],
+2024-04-07T20:15:22.310449616Z responseType: 'unknown',
+2024-04-07T20:15:22.310453113Z errorRedactor: [Function: e]
+2024-04-07T20:15:22.310456629Z },
+2024-04-07T20:15:22.310460126Z data: {
+2024-04-07T20:15:22.310463602Z error: 'invalid_grant',
+2024-04-07T20:15:22.310468211Z error_description: 'Token has been expired or revoked.'
+2024-04-07T20:15:22.310471838Z },
+2024-04-07T20:15:22.310475384Z headers: {
+2024-04-07T20:15:22.310478941Z 'alt-svc': 'h3="":443""; ma=2592000,h3-29="":443""; ma=2592000',
+2024-04-07T20:15:22.310487547Z 'cache-control': 'no-cache, no-store, max-age=0, must-revalidate',
+2024-04-07T20:15:22.310491265Z 'content-encoding': 'gzip',
+2024-04-07T20:15:22.310494911Z 'content-type': 'application/json; charset=utf-8',
+2024-04-07T20:15:22.310498899Z date: 'Sun, 07 Apr 2024 20:15:22 GMT',
+2024-04-07T20:15:22.310502426Z expires: 'Mon, 01 Jan 1990 00:00:00 GMT',
+2024-04-07T20:15:22.310505962Z pragma: 'no-cache',
+2024-04-07T20:15:22.310509459Z server: 'scaffolding on HTTPServer2',
+2024-04-07T20:15:22.310512985Z 'transfer-encoding': 'chunked',
+2024-04-07T20:15:22.310516502Z vary: 'Origin, X-Origin, Referer',
+2024-04-07T20:15:22.310520028Z 'x-content-type-options': 'nosniff',
+2024-04-07T20:15:22.310523565Z 'x-frame-options': 'SAMEORIGIN',
+2024-04-07T20:15:22.310527061Z 'x-xss-protection': '0'
+2024-04-07T20:15:22.310530578Z },
+2024-04-07T20:15:22.310534025Z status: 400,
+2024-04-07T20:15:22.310537511Z statusText: 'Bad Request',
+2024-04-07T20:15:22.310541018Z request: { responseURL: 'https://oauth2.googleapis.com/token' }
+2024-04-07T20:15:22.310544714Z },
+2024-04-07T20:15:22.310548171Z error: undefined,
+2024-04-07T20:15:22.310551788Z status: 400
+2024-04-07T20:15:22.310555354Z }
+
+```
+
+By selecting `Development` / `Production` switchable in dashboard UI 
+![image](https://github.com/formbricks/formbricks/assets/991907/43b0667b-77dc-4949-afa3-7badf7c7dc75)
+
+- I can connect and disconnect easily some new Surveys once I created new `Product` item and added there new `Survey` 
+
+ℹ️ 🧠   It seems something happen with `Product` entity to `Environment` level...
+
+I found if I  switch to another Product within the same Production UI env - Integration shows Not Connected.
+So I can connect and disconnect smoothly.
+And it work. But not that first initial Product I've connected earlier. So I can't disconnect it.
+
+
+
+### Expected behavior
+
+If I see Active Google Sheet Integration (what is indicated as Active) it has to be easily to connect and disconnect. As with other Products in the same formbricks docker Teams.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: sentos9
+- Node: v18.17.1
+- npm: 9.6.7
+```
+",,
+2226745582,2393,Formbricks - Uncaught TypeError: Cannot read properties of undefined (reading 'renderSurveyModal')     at widget.ts:67:23,"### Issue Summary
+
+We have integrated, code in our index page of the project.
+
+import formbricks from ""@formbricks/js"";
+
+if (typeof window !== ""undefined"") {
+  formbricks.init({
+    environmentId: ""xxxx"",
+    apiHost: ""yyyy"",
+  });
+}
+
+Installed into form bricks module into the project  - ""@formbricks/js"": ""^1.6.5"",
+
+### Steps to Reproduce
+
+When I refresh the page, I'm getting the issue
+<img width=""1438"" alt=""Error-formbricks"" src=""https://github.com/formbricks/formbricks/assets/22139959/e2b8d86a-fc42-4dd7-9403-1749efb8a94d"">
+
+
+
+### Expected behavior
+
+Expected to get fire the popup.
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [X] Formbricks Cloud (app.formbricks.com)
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Mac
+- Node: v18.10.0
+- npm: 9.8.1
+```
+",,
+2209344492,2343,[FEATURE] Import and export surveys functionality,"### Is your feature request related to a problem? Please describe.
+
+Surveys cannot be easily moved between different environments or shared with others for review and collaboration. Users are unable to transfer them to other systems or formats.
+
+
+### Describe the solution you'd like
+
+I would like the project to include functionality for users to export surveys in a universal format (such as JSON or XML) and import them back into the system. This feature should be easily accessible within the UI, allowing users to download their survey configurations and, conversely, upload them to the platform.
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+The manipulation, creation and translation (...) of surveys via LLMs may be archived this way.",,
+2208517159,2339,[BUG] JS Exception while tagging a response,"### Issue Summary
+
+I have a brand new self-hosted installation, and I have created my first survey, and have some responses.
+
+I'm trying to add my first tags by clicking on Add tag:
+
+![Capture d’écran 2024-03-26 à 15 59 02](https://github.com/formbricks/formbricks/assets/808338/97b6ef39-7264-42af-a4a5-0db3a48649a6)
+
+When I start typing a new tag, the following exception appears in the console:
+
+```
+9997-855a7025e8810cc0.js:1 TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+    at Function.from (<anonymous>)
+    at H (9822-0183831d87520c3b.js:1:9718)
+    at L (9822-0183831d87520c3b.js:1:8259)
+    at Object.setState (9822-0183831d87520c3b.js:1:6942)
+    at 9822-0183831d87520c3b.js:1:13374
+    at aI (1dd3208c-e5f8207d2ef6f0e0.js:1:72883)
+    at a3 (1dd3208c-e5f8207d2ef6f0e0.js:1:84324)
+    at a5 (1dd3208c-e5f8207d2ef6f0e0.js:1:84962)
+    at a8 (1dd3208c-e5f8207d2ef6f0e0.js:1:84846)
+    at a5 (1dd3208c-e5f8207d2ef6f0e0.js:1:85907)
+```
+
+and the screen displays:
+
+![Capture d’écran 2024-03-26 à 15 58 41](https://github.com/formbricks/formbricks/assets/808338/7e598446-e24a-45e6-a307-77fe6bf717e7)
+
+
+### Steps to Reproduce
+
+1. Select my survey
+2. Click on responses
+3. Click on ""Add tag""
+4. Type anything in the ""Add tag"" text field
+
+
+### Expected behavior
+
+A new tag is added...
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- Client OS: Mac
+- Client browser: Arc 1.35.0
+- Server: standard Docker image v1.6.1
+```
+",,
+2205648835,2332,[FEATURE] underscore for hidden fields because its norm but enabled camelCase only,"### Is your feature request related to a problem? Please describe.
+
+The problem is that - so i cant deliver normal `utm_*` absoluely, or any other underscored attr's we have in our solution
+But  it is the standart.
+
+### Describe the solution you'd like
+
+just allow in your  curernt `regex` for `hidden fields` the underscore `_` symbol in that namespace characters  
+
+### Describe alternatives you've considered
+
+no alternatives to underscore, unfortunately ;)
+
+### Additional context
+
+_No response_",,
+2205388349,2330,[BUG] Surveys fail to load after migration to 1.6.1,"### Issue Summary
+
+After I pulled the latest docker image and tried to run it, the surveys won't load anymore. In the browser console I get the following error:
+
+Uncaught (in promise) TypeError: cannot read properties of undefined (reading 'length')
+![image](https://github.com/formbricks/formbricks/assets/64426524/76edb6e0-3687-4454-a742-2da815eb1179)
+It seems like the issue is in this line: https://github.com/formbricks/formbricks/blob/1a21f40e5d16f7e987a585e97612f72de99733d9/packages/ui/SurveysList/index.tsx#L51
+![image](https://github.com/formbricks/formbricks/assets/64426524/c40fe178-5176-4184-b86a-8fdedb0cb15c)
+
+
+### Steps to Reproduce
+
+1. upgrade to 1.6.1 and run migrations
+2. surveys do not load anymore
+
+### Expected behavior
+
+no error, surveys visible
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+v1.6.1
+```
+",,
+2199434032,2301,[BUG] @formbricks/types can't be used to build custom formbricks client,"### Issue Summary
+
+`@formbricks/types` is not on npm
+
+### Steps to Reproduce
+
+`npm i @formbricks/js` and open the index.d.ts file. it referenced to non-existed (private) packages
+
+### Expected behavior
+
+`@formbricks/types` is published to npm or bundled to `@formbricks/js`
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: macOS
+- Node: 20
+- npm: 10
+```
+",,
+2191653018,2273,[BUG] Upgrade 1.5 -> 1.6.x fails,"### Issue Summary
+
+Trying to upgrade according to the [guides](https://formbricks.com/docs/self-hosting/migration-guide#v1-6) fails at database migration
+
+### Steps to Reproduce
+
+
+    docker run --rm   --network=formbricks_default   -e DATABASE_URL=""postgresql://postgres:postgres@postgres:5432/formbricks?schema=public""   -e UPGRADE_TO_VERSION=""v1.6""   ghcr.io/formbricks/data-migrations:v1.6
+    Unable to find image 'ghcr.io/formbricks/data-migrations:v1.6' locally
+    docker: Error response from daemon: manifest unknown.
+    See 'docker run --help'.
+
+
+---
+
+If i use the specific image for 1.6.1 I get
+
+sudo docker run --rm   --network=formbricks_default   -e DATABASE_URL=""postgresql://postgres:postgres@postgres:5432/formbricks?schema=public""   -e UPGRADE_TO_VERSION=""v1.6""   ghcr.io/formbricks/data-migrations:v1.6.1
+    
+    > @formbricks/database@0.1.0 data-migration:v1.6 /app/packages/database
+    > ts-node ./migrations/20240207041922_advanced_targeting/data-migration.ts
+    
+    PrismaClientKnownRequestError: 
+    Invalid `prisma.survey.findMany()` invocation in
+    /app/packages/database/migrations/20240207041922_advanced_targeting/data-migration.ts:15:64
+    
+      12 
+      13 async function main() {
+      14   await prisma.$transaction(async (tx) => {
+    → 15     const allSurveysWithAttributeFilters = await prisma.survey.findMany(
+    The column `Survey.createdBy` does not exist in the current database.
+        at In.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:122:6854)
+        at In.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:122:6188)
+        at In.request (/app/node_modules/@prisma/client/runtime/library.js:122:5896)
+        at async l (/app/node_modules/@prisma/client/runtime/library.js:127:10871)
+        at async /app/packages/database/migrations/20240207041922_advanced_targeting/data-migration.ts:15:44
+        at async Proxy._transactionWithCallback (/app/node_modules/@prisma/client/runtime/library.js:127:9534)
+        at async main (/app/packages/database/migrations/20240207041922_advanced_targeting/data-migration.ts:14:3) {
+      code: 'P2022',
+      clientVersion: '5.11.0',
+      meta: { modelName: 'Survey', column: 'Survey.createdBy' }
+    }
+     ELIFECYCLE  Command failed with exit code 1.
+    
+    
+    
+
+### Expected behavior
+
+Expected the migration to succeed
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS:
+- Node:
+- npm:
+```
+",,
+2190181609,2264,[BUG] on-the-fly triggers do not work with displayPercentage,"### Issue Summary
+
+When you use an on-the-fly URL trigger the survey does not take the displayPercentage into account.
+The issue is that renderWidget is called for inline triggers: [https://github.com/formbricks/formbricks/blob/main/packages/js/src/lib/noCodeActions.ts#L63](https://github.com/formbricks/formbricks/blob/main/packages/js/src/lib/noCodeActions.ts#L63)
+
+suggestion: I know this might be a bit late, but I think a different architecture for inlineTriggers would be better:
+
+1. Add an attribute `inline` to `ActionClass`. If inline is true, do not show it in the Actions & Attributes panel in the backend and exclude from action search.
+2. Add an option to the survey editor to add a trigger, these actions will be inline (but only visible for this survey).
+3. The sync API should return inline actions just like normal actions.
+   This has the following advantages: a) every feature for reusable action will also work for inline actions and vice versa and b) it reduces complexity and reduces file size of the frontend pixel.
+
+### Steps to Reproduce
+
+1. Add survey, set displayPercentage to 1%, set URL on-the-fly trigger.
+2. Open targeted page.
+3. Survey pops up.
+
+### Expected behavior
+
+expected:
+Survey pops up in 1% of page loads.
+
+actual:
+Survey pops up in 100% of page loads.
+
+### Other information
+
+*No response*
+
+### Screenshots
+
+*No response*
+
+### Environment
+
+- [ ] Formbricks Cloud ([app.formbricks.com](http://app.formbricks.com))
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- js 1.6.4
+```",,
+2174924402,2203,"[BUG] Compiling error in Nullish Coalescing Operators ""??""","### Issue Summary
+
+I followed the steps of the documentation using [Formbricks in a VueJS project](https://formbricks.com/docs/getting-started/framework-guides#vue-js).
+When I start my project, I get the following error:
+
+```
+ ERROR  Failed to compile with 1 error                                                                                                                       19:09:22
+
+ error  in ./node_modules/@formbricks/js/dist/index.mjs
+
+Module parse failed: Unexpected token (150:33)
+You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders   
+|         ""X-File-Type"": file.type,
+|         ""X-File-Name"": encodeURIComponent(updatedFileName),
+>         ""X-Survey-ID"": surveyId ?? """",
+|         ""X-Signature"": signature,
+|         ""X-Timestamp"": String(timestamp),
+```
+
+### Steps to Reproduce
+
+### Using:
+
+├── @babel/plugin-transform-nullish-coalescing-operator@7.23.4
+├── @formbricks/js@1.6.2
+├── @types/webpack-env@1.16.0
+├── @typescript-eslint/eslint-plugin@5.57.1
+├── @typescript-eslint/parser@5.57.1
+├── @vue/cli-plugin-babel@4.5.19
+├── @vue/cli-plugin-eslint@4.5.19
+├── @vue/cli-plugin-router@4.5.19
+├── @vue/cli-plugin-typescript@4.5.19
+├── @vue/cli-plugin-unit-jest@5.0.8
+├── @vue/cli-plugin-vuex@4.5.19
+├── @vue/cli-service@4.5.19
+├── @vue/eslint-config-prettier@6.0.0
+├── @vue/eslint-config-typescript@9.1.0
+├── babel-plugin-transform-decorators@6.24.1
+├── bcryptjs@2.4.3
+├── copy-webpack-plugin@6.4.1
+├── core-js@3.36.0
+├── eslint-plugin-prettier@3.1.3
+├── eslint-plugin-vue@8.7.1
+├── eslint@6.8.0
+├── jest@27.5.1
+├── less@4.1.2
+├── moment@2.29.4
+├── prettier@1.19.1
+├── sass-loader@10.4.1
+├── sass@1.69.5
+├── semver@7.3.8
+├── terser-webpack-plugin@4.2.3
+├── ts-jest@27.1.4
+├── typescript@4.5.4
+├── unplugin-vue-components@0.26.0
+├── vue@3.4.15
+├── vuex-module-decorators@2.0.0
+├── vuex-persist@3.1.3
+├── vuex@4.0.2
+
+### My config files are:
+
+.babelrc
+
+```
+{
+	""presets"": [
+		""@vue/cli-plugin-babel/preset"",
+		[
+			""@babel/preset-env"",
+			{
+				""targets"": {
+					""node"": ""current""
+				}
+			}
+		]
+	],
+	""plugins"": [""@babel/plugin-transform-nullish-coalescing-operator""]
+}
+```
+
+tsconfig.json
+
+```
+{
+	""compilerOptions"": {
+		""experimentalDecorators"": true,
+		""target"": ""esnext"",
+		""module"": ""esnext"",
+		""strict"": true,
+		""jsx"": ""preserve"",
+		""importHelpers"": true,
+		""moduleResolution"": ""node"",
+		""skipLibCheck"": true,
+		""resolveJsonModule"": true,
+		""esModuleInterop"": true,
+		""allowSyntheticDefaultImports"": true,
+		""useUnknownInCatchVariables"": false,
+		""allowJs"": true,
+		""noImplicitAny"": false,
+		""sourceMap"": true,
+		""baseUrl"": ""."",
+		""outDir"": ""dist"",
+		""types"": [""node""],
+		""paths"": {
+			""@/*"": [""src/*""]
+		},
+		""lib"": [""esnext"", ""dom"", ""dom.iterable"", ""scripthost""]
+	},
+	""include"": [""src/**/*.ts"", ""src/**/*.vue"", ""src/**/*.js"", ""components.d.ts""],
+	""exclude"": [""dist"", ""node_modules""]
+}
+```
+
+### Expected behavior
+
+To compile and works with my project.
+
+### Other information
+
+*No response*
+
+### Screenshots
+
+*No response*
+
+### Environment
+
+- [X] Formbricks Cloud ([app.formbricks.com](http://app.formbricks.com))
+- [ ] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- OS: Windows
+- Node: 16.16.0
+- npm: 8.11.0
+```",,
+2173763473,2199,[BUG] Downloads not working,"### Issue Summary
+
+Downloads stopped working for us in 1.6.0 (even for surveys without any responses).
+We are not using S3 yet (waiting for https://github.com/formbricks/formbricks/pull/2144). In the k8s logs I see the following errors:
+
+[Error: ENOENT: no such file or directory, open './uploads/clth7dw2k000008k16ak2dd1f/private/export-in/test-survey.xlsx'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: './uploads/clth7dw2k000008k16ak2dd1f/private/export-in/test-survey.xlsx'
+}
+[Error: ENOENT: no such file or directory, open './uploads/clth7dw2k000008k16ak2dd1f/private/export-in/test-survey.csv'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: './uploads/clth7dw2k000008k16ak2dd1f/private/export-in/test-survey.csv'
+}
+
+### Steps to Reproduce
+
+1. open a survey that received answers
+2. Click on Download -> All responses (CSV)
+3. download not starting, toast error appears
+![image](https://github.com/formbricks/formbricks/assets/64426524/a9f8fcdd-2fd6-4888-97c6-ffd0be848c9d)
+
+
+
+### Expected behavior
+
+you can download the responses
+
+### Other information
+
+_No response_
+
+### Screenshots
+
+_No response_
+
+### Environment
+
+- [ ] Formbricks Cloud (app.formbricks.com)
+- [X] Self-hosted Formbricks
+
+### Desktop (please complete the following information)
+
+```markdown
+- version 1.6.0, S3 not configured
+```
+",,
+2151393770,2119,[FEATURE][🕹️] Branded Link Surveys,"### Is your feature request related to a problem? Please describe.
+
+**Issue**: 
+People want to brand surveys with a logo that is always visible
+
+### Describe the solution you'd like
+
+**Solution**: 
+We allow people to add a company logo to their product:
+
+- They can adjust the background color
+- They can toggle it on and off for link surveys
+
+**Survey Editor UI**
+Add a field to the top left corner which prompts users to upload their company logo:
+
+<img width=""669"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/fd947e33-e8c9-4d3c-977f-3fc6a65dbb54"">
+
+<img width=""469"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/b347eab3-bf76-471f-9e2e-44148195c862"">
+
+On click, the upload mask opens which only allows .png and .jpeg files. 
+
+**Logo Settings**
+
+Once an image file was selected and uploaded, this modal opens:
+<img width=""777"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/b06abb9f-2a6d-4d95-90ae-487040b0aabd"">
+
+1. Replace logo: Opens the upload modal again to replace logo
+2. Remove logo: Replaces the preview with our standard file upload UI (find it in `packages/ui`). However, the logo file is not deleted on button click, this happens only on ""Save"". Otherwise ""Cancel"" cannot undo it.
+3. Background color: Default #ffffff, affects the background color of the container holding the logo
+
+The rest of the UI should be self-explanatory. On SAVE the logo is displayed accordingly in the top left corner of the link survey preview. 
+
+On HOVER on the logo, we see an EDIT icon button which opens the same settings modal:
+
+<img width=""998"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/3b6a3efe-7e00-4f2d-beae-adb00ffda0c4"">
+
+In the Styling Card in the survey settings, we add a ""Hide logo"" toggle if the product has a logo:
+
+<img width=""548"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/09feb38e-1e97-4cde-9400-1824b127d1e3"">
+
+The toggle hides the logo in this specific survey :)
+
+----------
+
+**Product Settings > Look & Feel Page**
+We also allow to add the logo on the Look & Feel page in the Product Settings. The card looks like this at first:
+
+<img width=""701"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/9b4938e8-f65a-4da2-84aa-75bc75ea548c"">
+
+Once the user uploaded an image we see the editor:
+
+<img width=""669"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/9c5bba77-7422-428c-b481-66dde2d258ce"">
+
+After save, we can see the preview and the color but cannot make changes without hitting ""Edit"":
+
+<img width=""667"" alt=""image"" src=""https://github.com/formbricks/formbricks/assets/72809645/6135b322-3550-4c5f-bb00-0a68e74118a3"">
+
+--------
+
+In the `LinkSurvey.tsx` display the logo if there is one for the product and the survey styling has showLogo enabled. It should be displayed in the top left corner of the page. Make sure it works well responsively.
+
+--------
+
+**Data Model**
+
+Please extend the `Product` model in prisma with a new JSON object `brand`:
+
+```
+""brand"": {
+  ""logoUrl"": ""..."",
+  ""bgColor"": ""#ffffff"",
+}
+```
+
+In the styling JSON in the `Survey` model we set the variable `showLogo` to true for all new surveys. If  the variable is not set, we don't display the logo. In the settings in the Styling card we can set it to false by toggling off.
+
+---------
+
+**Team Roles**
+We have team roles with different rights. Only render the card in the look and feel settings as well as the ""Add logo here"" indicator in the survey editor when the logged in user is a Developer, Editor or Admin (so not a Viewer).
+
+---------
+
+**How we code at Formbricks**
+1. To keep our code DRY, create the UI we need both in the survey editor and the settings page in the `packages/ui` folder and import it back into the Formbricks app to use it.
+2. Upload functionality: We're using it in several place in the app, stick to the same process to keep it consistent.
+
+### Describe alternatives you've considered
+
+-
+
+### Additional context
+
+-",,
+2143935462,2104,[FEATURE] make widget not depend on internet access,"### Is your feature request related to a problem? Please describe.
+
+For on-premise deployment on a ""isolated"" network, the widget is not working.
+It seems to try to fetch a package from the internet defined here : packages/js/vite.config.ts 
+
+```
+  const formbricksSurveysScriptSrc = isDevelopment
+    ? ""http://localhost:3003/index.umd.js""
+    : `https://unpkg.com/@formbricks/surveys@^${surveysPackageJson.version}/dist/index.umd.js`;
+
+```
+
+### Describe the solution you'd like
+
+make it not link to an internet URL
+
+### Describe alternatives you've considered
+
+I don't see any
+
+### Additional context
+
+_No response_",,
+2114716335,2000,[FOR-1823] [FEATURE] Support other S3-compatible storage solutions,"### Is your feature request related to a problem? Please describe.
+
+Formbricks currently only supports local file storage or AWS S3. But even though there are a lot other S3-compatible storage solutions (like MinIO), it can't be configured in Formbricks because the endpoint is not customizable in the S3 connection setup ( https://github.com/formbricks/formbricks/blob/main/packages%2Flib%2Fstorage%2Fservice.ts#L33-L39 )
+
+### Describe the solution you'd like
+
+Add a new optional environment variable `S3_ENDPOINT_URL` that when set, customises the endpoint in the s3 config, e.g.
+```
+const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: S3_ACCESS_KEY,
+    secretAccessKey: S3_SECRET_KEY!,
+  },
+  endpoint: S3_ENDPOINT_URL,
+  region: AWS_REGION!,
+});
+```
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+Based on Discord Request: https://discord.com/channels/979077669410979880/1202861147561402438
+
+<sub>[FOR-1823](https://linear.app/formbricks/issue/FOR-1823/[feature]-support-other-s3-compatible-storage-solutions)</sub>",,
+2095971815,1946,[FEATURE] Enhance Export: Include Response Tags and Comments in Downloads,"### Is your feature request related to a problem? Please describe.
+
+In the current export functionality, response tags and comments are not included in CSV/Excel files. This absence complicates the analysis process and diminishes the exported data's richness.
+
+### Describe the solution you'd like
+
+We propose adding the capability to incorporate response tags and comments in the exported files. This improvement would empower users to maintain context and insights associated with each response, streamlining the analysis process.
+
+Benefits:
+- Context Retention: Including response tags and comments ensures that the exported data retains valuable contextual information, facilitating a more comprehensive understanding of responses.
+- Efficient Analysis: Users can seamlessly conduct detailed analysis and reporting without the need to cross-reference with the platform.
+
+
+
+### Describe alternatives you've considered
+
+_No response_
+
+### Additional context
+
+_No response_",,
