@@ -2,6 +2,20 @@ import os
 import csv
 import re
 from collections import defaultdict
+from langdetect import detect, DetectorFactory
+import nltk
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+
+# Ensure consistent results from langdetect
+DetectorFactory.seed = 0
+
+# Download NLTK resources (only need to run once)
+nltk.download('wordnet')
+nltk.download('omw-1.4')  # For WordNet to work properly
+
+# Initialize the lemmatizer
+lemmatizer = WordNetLemmatizer()
 
 # Define bug categories and associated keywords
 BUG_CATEGORIES = {
@@ -10,27 +24,11 @@ BUG_CATEGORIES = {
         "parameter undefined", "unexpected type", "null value", "undefined variable", "missing argument",
         "extra argument", "optional parameter missing", "default parameter error"
     ],
-    "DOM-related Issues": [
-        "dom", "document object model", "element not found", "selector error", "event binding",
-        "render issue", "update dom", "dom manipulation", "element not updating", "dom traversal",
-        "event listener error", "dom rendering", "element visibility", "dom update failure"
-    ],
     "Type System Errors": [
         "type error", "typescript error", "interface not found", "missing type", "type declaration",
         "type incompatibility", "type assertion", "generic type", "type inference", "union type error",
         "intersection type error", "conditional type error", "type narrowing", "type widening",
-        "inferred type mismatch", "type coercion error"
-    ],
-    "Interface Issues": [
-        "interface", "implement interface", "extends interface", "interface mismatch", "interface error",
-        "interface definition", "interface property", "interface method", "abstract class error",
-        "interface inheritance", "interface implementation", "interface property mismatch"
-    ],
-    "Other TypeScript-specific Bugs": [
-        "decorator error", "namespace conflict", "module resolution", "enum issue",
-        "type alias", "tuple error", "type guard", "type narrowing", "async typing",
-        "namespace error", "decorator syntax", "module import error", "decorator usage",
-        "enum type error", "type alias conflict", "tuple type mismatch", "async function error"
+        "inferred type mismatch", "type coercion error", "structural typing", "duck typing"
     ],
     "Compilation Errors": [
         "compilation error", "tsc error", "typescript compiler", "compiling issue",
@@ -65,275 +63,94 @@ BUG_CATEGORIES = {
         "package version mismatch", "typings error"
     ],
     "Performance Issues": [
-        "performance issue", "slow build", "memory leak", "high CPU usage",
+        "performance issue", "slow build", "memory leak", "high cpu usage",
         "performance degradation", "optimization needed", "latency issue",
         "render performance", "load time issue", "slow response time", "resource-intensive",
         "performance bottleneck", "lagging interface", "slow rendering", "inefficient algorithm",
-        "unoptimized loop", "excessive API calls", "unnecessary re-renders", "performance profiling needed"
-    ],
-    "Build Errors": [
-        "build error", "build failed", "build process issue", "build script error",
-        "continuous integration build error", "build pipeline failure", "webpack build error",
-        "rollup build issue", "parcel build error", "vite build failure"
+        "unoptimized loop", "excessive api calls", "unnecessary re-renders", "performance profiling needed"
     ],
     "Tooling Errors": [
         "linting error", "eslint error", "prettier error", "editor issue",
         "ide integration issue", "typescript language server error", "vscode typescript error",
         "code formatter error", "debugger issue", "plugin error", "tslint error"
     ],
-    "Code Quality Issues": [
-        "code smell", "maintainability issue", "refactor needed", "technical debt",
-        "code duplication", "poor code structure", "complexity issue", "code readability",
-        "spaghetti code", "code inconsistency", "anti-pattern", "tight coupling"
-    ],
     "Testing Issues": [
         "test failure", "unit test error", "integration test issue", "jest typescript error",
         "test coverage issue", "test setup error", "mocking error", "test environment issue",
         "snapshot test error", "test assertion failure", "test flakiness", "e2e test issue",
-        "testing error", "jest issue", "mocha error", "jasmine problem", "test runner error",
-        "test suite failure", "test coverage issue", "assertion failure", "end-to-end testing problem"
+        "testing error", "test runner error", "test suite failure", "assertion failure"
     ],
-    "Security Vulnerabilities": [
-        "security vulnerability", "xss", "csrf", "injection attack", "vulnerability",
-        "secure coding", "security flaw", "authentication error", "authorization error",
-        "data exposure", "buffer overflow", "sensitive data leak", "insecure dependency",
-        "encryption error", "decryption issue", "hashing error", "ssl/tls problem",
-        "certificate error", "cryptographic algorithm issue", "key management problem"
-    ],
-    "Async/Await Issues": [
-        "async error", "await issue", "promise rejection", "async function error",
-        "deadlock", "async stack trace", "unhandled promise", "async race condition",
-        "async callback error", "async flow issue", "async exception",
-        "concurrency error", "race condition", "thread safety issue", "mutex error",
-        "event loop error", "async iterator error", "promise chain problem"
-    ],
-    "Generics Issues": [
-        "generics error", "generic type issue", "type parameter error",
-        "generic constraint", "generic function error", "generic interface error",
-        "generic class issue", "generic type mismatch", "generic overload error"
-    ],
-    "Module Resolution Errors": [
-        "module not found", "module resolution error", "import error",
-        "export error", "module alias issue", "path resolution error",
-        "relative import error", "absolute import issue", "module boundary error",
-        "module circular dependency", "dynamic import error"
-    ],
-    "Error Handling Issues": [
-        "error handling", "try catch issue", "error boundary error", "unhandled exception",
-        "error propagation", "error logging issue", "error message unclear",
-        "error type mismatch", "exception handling error", "custom error class issue",
-        "error notification failure", "error tracking tool integration", "error message formatting error"
-    ],
-    "Version Compatibility Issues": [
-        "version compatibility", "typescript version issue", "library version mismatch",
-        "dependency version conflict", "typescript upgrade issue", "framework version error",
-        "migration error", "upgrade issue", "breaking changes", "deprecated feature",
-        "backward compatibility error", "api changes"
-    ],
-    "Logging and Monitoring Issues": [
-        "logging error", "monitoring issue", "log message error", "logging configuration",
-        "monitoring tool integration", "log level issue", "log format error",
-        "logging configuration issue", "log rotation problem", "centralized logging problem",
-        "logging verbosity issue"
-    ],
-    "IDE and Editor Issues": [
-        "ide error", "visual studio code issue", "intellisense not working", "syntax highlighting problem",
-        "code completion error", "editor crash", "debugging issue", "code navigation error",
-        "refactoring tool error", "editor plugin issue", "autocomplete failure"
-    ],
-    "React and JSX Issues": [
-        "react error", "jsx syntax error", "component type error", "props typing issue",
-        "state management error", "hooks type error", "functional component issue",
-        "class component typing error", "react native error", "react router issue",
-        "redux integration error", "context api error"
-    ],
-    "Migration and Upgrade Issues": [
-        "migration error", "upgrade issue", "breaking changes", "deprecated feature",
-        "typescript upgrade problem", "version incompatibility", "migration guide needed",
-        "legacy code issue", "backward compatibility error", "api changes"
-    ],
-    "State Management Issues": [
-        "state error", "state management problem", "redux typing error", "mobx issue",
-        "context state error", "store type error", "state update issue",
-        "unidirectional data flow error", "observable state problem", "reducer function error"
-    ],
-    "Type Definition File Issues": [
-        "type definition error", ".d.ts file error", "ambient declaration issue",
-        "declaration merging problem", "definitelytyped error", "missing types",
-        "ambient module error", "external module declaration issue", "global type error",
-        "namespace declaration problem"
-    ],
-    "Operator and Expression Issues": [
-        "operator overloading error", "spread operator issue", "rest parameter error",
-        "destructuring assignment problem", "optional chaining error", "nullish coalescing issue",
-        "template literal error", "tagged template literal problem", "conditional expression error",
-        "logical operator issue"
-    ],
-    "Data Binding and Template Issues": [
-        "data binding error", "template syntax issue", "interpolation problem",
-        "one-way binding error", "two-way binding issue", "event binding problem",
-        "template parse error", "directive error", "binding context issue",
-        "template variable error"
-    ],
-    "Localization and Internationalization Issues": [
-        "localization error", "internationalization issue", "i18n problem", "l10n error",
-        "locale data error", "currency format issue", "date format error", "translation missing",
-        "unicode error", "encoding problem", "language pack missing", "right-to-left language support",
-        "multilingual support issue", "character set problem"
-    ],
-    "Build Tool and Process Issues": [
-        "webpack error", "babel transpilation issue", "gulp task error", "grunt problem",
-        "rollup bundling error", "build script failure", "minification issue", "source map error",
-        "hot module replacement problem", "build optimization error"
-    ],
-    "Polyfills and Compatibility Issues": [
-        "polyfill error", "compatibility issue", "es5/es6 target error", "core-js problem",
-        "promise polyfill missing", "symbol polyfill issue", "browser compatibility error",
-        "transpiler configuration error", "legacy browser support problem", "feature detection error"
-    ],
-    "Interoperability Issues": [
-        "interoperability error", "interop issue", "javascript integration problem",
-        "commonjs module error", "es module issue", "default export problem",
-        "named export error", "require vs. import issue", "module wrapper error",
-        "mixing module systems problem"
-    ],
-    "Third-Party Library Integration Issues": [
-        "library integration error", "third-party module issue", "plugin conflict",
-        "package compatibility problem", "sdk error", "api integration issue",
-        "external service error", "dependency injection problem", "library typing error",
-        "module augmentation issue"
-    ],
-    "Database and ORM Issues": [
-        "database connection error", "orm typing issue", "sequelize error", "typeorm problem",
-        "prisma issue", "query builder error", "model definition problem", "data retrieval error",
-        "transaction error", "database schema mismatch"
-    ],
-    "Network and API Communication Issues": [
-        "http request error", "axios issue", "fetch api problem", "rest api error",
-        "graphql query issue", "websocket error", "cors error", "api response handling problem",
-        "network timeout error", "authentication token issue"
-    ],
-    "File System and Path Issues": [
-        "file system error", "path resolution problem", "fs module error", "file read/write issue",
-        "directory not found", "file permission error", "symbolic link problem", "path normalization issue",
-        "file watcher error", "glob pattern error"
-    ],
-    "Time and Date Handling Issues": [
-        "date parsing error", "time zone issue", "date formatting problem", "moment.js error",
-        "date-fns issue", "timestamp error", "daylight saving time problem", "duration calculation error",
-        "countdown timer issue", "chronograph error"
-    ],
-    "Asynchronous Programming Issues": [
-        "concurrency error", "race condition", "deadlock", "thread safety issue", "mutex error",
-        "asynchronous callback problem", "event loop error", "scheduling issue", "async iterator error",
-        "promise chain problem"
-    ],
-    "Memory and Resource Management Issues": [
-        "memory leak", "resource exhaustion", "garbage collection issue", "memory allocation error",
-        "stack overflow", "heap overflow", "memory corruption", "buffer overflow",
-        "resource cleanup error", "file handle leak"
-    ],
-    "Cryptography and Security Issues": [
-        "encryption error", "decryption issue", "hashing error", "ssl/tls problem",
-        "certificate error", "cryptographic algorithm issue", "secure token error",
-        "key management problem", "authentication failure", "security protocol error"
-    ],
-    "Styling and CSS Integration Issues": [
-        "css module error", "styled-components issue", "emotion styling error", "sass/scss problem",
-        "less error", "style loader issue", "css-in-js error", "stylelint problem",
-        "responsive design issue", "theme provider error"
-    ],
-    "GraphQL Integration Issues": [
-        "graphql error", "apollo client issue", "schema stitching problem", "query syntax error",
-        "mutation error", "resolver function issue", "graphql type error", "subscription error",
-        "graphql code generation problem", "caching issue"
-    ],
-    "Mobile Development Issues": [
-        "react native error", "expo issue", "mobile build error", "native module problem",
-        "platform-specific code error", "android issue", "ios error", "device compatibility problem",
-        "touch event error", "mobile ui issue"
-    ],
-    "WebAssembly and Low-Level Issues": [
-        "webassembly error", "wasm module issue", "binary compilation error", "memory access error",
-        "low-level api problem", "performance optimization error", "rust integration issue",
-        "assemblyscript error", "simd instruction problem", "threading issue in wasm"
-    ],
-    "Cross-Browser Compatibility Issues": [
-        "cross-browser issue", "browser-specific error", "internet explorer problem", "safari error",
-        "chrome bug", "firefox issue", "mobile browser problem", "css prefix error",
-        "html5 feature support issue", "browser api compatibility error"
-    ],
-    "Package Management Issues": [
-        "npm error", "yarn issue", "package.json problem", "dependency resolution error",
-        "package lockfile issue", "npm script error", "versioning problem",
-        "peer dependency conflict", "package installation error", "scoped package issue"
-    ],
-    "Cloud Services and Deployment Issues": [
-        "aws error", "azure issue", "google cloud problem", "serverless function error",
-        "deployment script issue", "ci/cd pipeline error", "docker container problem",
-        "kubernetes deployment error", "environment variable issue", "cloud service integration error"
-    ],
-    "Accessibility and Usability Issues": [
-        "accessibility error", "aria attribute issue", "screen reader problem",
-        "keyboard navigation error", "focus management issue", "contrast ratio error",
-        "tab order problem", "accessible form error", "wcag compliance issue",
-        "user experience problem"
-    ],
-    "Documentation and Comment Issues": [
-        "missing documentation", "outdated comment", "incorrect jsdoc annotation",
-        "api documentation error", "code readability issue", "documentation generation problem",
-        "typedoc error", "annotation syntax error", "inline comment issue",
-        "misleading documentation"
-    ],
-    "Error Message Clarity Issues": [
-        "unclear error message", "ambiguous warning", "misleading exception",
-        "insufficient error details", "error message formatting issue", "stack trace problem",
-        "user-friendly error needed", "logging verbosity issue", "error code confusion",
-        "debug information missing"
-    ],
-    "Animation and Transition Issues": [
-        "animation error", "transition timing issue", "css animation problem",
-        "frame drop", "performance lag in animation", "keyframe error",
-        "animation library issue", "gesture handling problem", "animation interruption",
-        "transition effect error"
-    ],
-    "Dependency Injection Issues": [
-        "dependency injection error", "inversion of control problem", "service provider issue",
-        "singleton pattern error", "constructor injection problem", "di container error",
-        "provider resolution issue", "lifecycle management error", "scoped dependency problem",
-        "module injection error"
-    ],
-    "Command-Line Interface (CLI) Tool Issues": [
-        "cli error", "command parsing issue", "argument handling error", "option flag problem",
-        "user input error", "output formatting issue", "terminal compatibility problem",
-        "stdin/stdout error", "script execution error", "shell command issue"
-    ],
-    "Streaming and Buffering Issues": [
-        "stream error", "buffering problem", "data flow issue", "backpressure error",
-        "stream piping problem", "real-time data error", "multimedia streaming issue",
-        "audio/video sync error", "chunk processing error", "network latency issue"
-    ],
-    "Serialization and Deserialization Issues": [
-        "json parse error", "serialization problem", "deserialization error",
-        "circular reference issue", "data contract error", "xml parsing error",
-        "binary serialization issue", "data transformation error", "object mapping problem",
-        "schema validation error"
-    ],
-    "Build Output and Artifact Issues": [
-        "output file error", "artifact generation problem", "distribution package issue",
-        "code minification error", "source map problem", "asset bundling error",
-        "file hashing issue", "cdn deployment error", "output directory problem",
-        "versioning in build artifacts"
-    ],
-    "Event Handling Issues": [
-        "event listener error", "callback issue", "event emitter problem", "custom event error",
-        "event bubbling issue", "event delegation problem", "asynchronous event handling error",
-        "race condition in events", "dom event issue", "synthetic event error"
-    ]
+    # Add more categories as needed
 }
 
+# Function to check if text is in English
+def is_english(text):
+    try:
+        return detect(text) == 'en'
+    except:
+        return False
 
-# Function to load all CSV files in the current directory
+# Preprocessing function to clean text
+def preprocess_text(text):
+    # Remove code blocks
+    text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
+    # Remove inline code
+    text = re.sub(r'`.*?`', '', text)
+    # Remove URLs
+    text = re.sub(r'http\S+', '', text)
+    # Remove emails
+    text = re.sub(r'\S+@\S+', '', text)
+    # Remove special characters and numbers
+    text = re.sub(r'[^a-zA-Z\s]', ' ', text)
+    # Collapse multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip().lower()
+
+# Modified function to expand keywords without nltk.word_tokenize
+def expand_keywords(keywords):
+    expanded_keywords = set()
+    for keyword in keywords:
+        # Tokenize and lemmatize the keyword using simple split
+        words = keyword.split()
+        for word in words:
+            lemmatized_word = lemmatizer.lemmatize(word.lower())
+            expanded_keywords.add(lemmatized_word)
+            # Add synonyms
+            for syn in wordnet.synsets(word):
+                for lemma in syn.lemmas():
+                    expanded_keywords.add(lemma.name().lower())
+    return expanded_keywords
+
+# Expand keywords for each category
+EXPANDED_BUG_CATEGORIES = {}
+for category, keywords in BUG_CATEGORIES.items():
+    EXPANDED_BUG_CATEGORIES[category] = expand_keywords(keywords)
+
+# Function to classify a single issue into one category
+def classify_issue(issue_text):
+    # Tokenize and lemmatize the issue text using simple split
+    issue_tokens = set(issue_text.split())
+    issue_lemmas = set(lemmatizer.lemmatize(token.lower()) for token in issue_tokens)
+
+    # Calculate scores for each category
+    category_scores = {}
+    for category, keywords in EXPANDED_BUG_CATEGORIES.items():
+        matches = issue_lemmas & keywords
+        if matches:
+            category_scores[category] = len(matches)
+    
+    if category_scores:
+        # Assign the issue to the category with the highest score
+        # In case of a tie, the category that comes first in BUG_CATEGORIES is chosen
+        max_score = max(category_scores.values())
+        best_categories = [cat for cat, score in category_scores.items() if score == max_score]
+        for category in BUG_CATEGORIES.keys():
+            if category in best_categories:
+                return category
+    else:
+        return None
+
+# Function to load all CSV files in the given directory
 def load_csv_files(directory):
     csv_files = [file for file in os.listdir(directory) if file.endswith('.csv')]
     all_issues = []
@@ -354,40 +171,35 @@ def load_csv_files(directory):
             print(f"Error processing file '{file}': {e}")
     return all_issues
 
-# Function to classify a single issue based on keywords
-def classify_issue(issue_text):
-    issue_text = issue_text.lower()
-    categories_found = set()
-    for category, keywords in BUG_CATEGORIES.items():
-        for keyword in keywords:
-            if re.search(r'\b' + re.escape(keyword) + r'\b', issue_text):
-                categories_found.add(category)
-                break  # Avoid duplicate category entries for multiple keywords
-    return list(categories_found)
-
-# Function to process issues and classify them
+# Function to process and classify issues
 def process_and_classify_issues(issues):
     classification_counts = defaultdict(int)
     classified_issues = []
 
     for issue in issues:
-        # Combine relevant fields for keyword searching
+        # Combine and preprocess text
         combined_text = ' '.join([
             issue.get('issue_title', ''),
             issue.get('issue_body', ''),
             issue.get('comment_body', '')
-        ]).lower()
+        ])
+        combined_text = preprocess_text(combined_text)
 
-        categories = classify_issue(combined_text)
-        if categories:
-            for category in categories:
-                classification_counts[category] += 1
+        # Remove entries that are not in English
+        if not is_english(combined_text):
+            continue
+
+        # Classify issue
+        category = classify_issue(combined_text)
+
+        if category:
+            classification_counts[category] += 1
             classified_issues.append({
                 'issue_id': issue.get('issue_id', ''),
                 'issue_number': issue.get('issue_number', ''),
                 'issue_title': issue.get('issue_title', ''),
                 'issue_body': issue.get('issue_body', ''),
-                'categories': '; '.join(categories)
+                'categories': category
             })
         else:
             classified_issues.append({
@@ -419,8 +231,9 @@ def write_classification_summary_to_csv(classification_counts, output_filename='
             writer.writerow([category, count])
     print(f'Classification summary exported to {output_filename}')
 
+# Main execution block
 if __name__ == '__main__':
-    directory = '.'  # Current directory
+    directory = 'cleaned_csv_files'  # Directory containing your cleaned CSV files
     print("Loading CSV files...")
     issues = load_csv_files(directory)
     print(f"Total issues loaded: {len(issues)}")
